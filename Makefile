@@ -14,4 +14,6 @@ test:
 # make install: install what's needed.
 .PHONY: install
 install:
-	pip install pipenv && pipenv install
+	pip install pipenv; \
+	pipenv install; \
+	pipenv install --dev
