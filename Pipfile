@@ -6,6 +6,8 @@ verify_ssl = true
 [dev-packages]
 pycodestyle = "*"
 pytest = "*"
+pytest-cov = "*"
+coveralls = "*"
 
 [packages]
 

@@ -11,6 +11,11 @@ run:
 test:
 	pipenv run pytest $(APP_DIR_NAME)
 
+# make report: run tests and generate coverage report.
+.PHONY: report
+report:
+	pipenv run pytest --cov-config=.coveragerc --cov=$(APP_DIR_NAME)
+
 # make install: install what's needed.
 .PHONY: install
 install:
