@@ -10,3 +10,8 @@ run:
 .PHONY: test
 test:
 	pipenv run pytest $(APP_DIR_NAME)
+
+# make install: install what's needed.
+.PHONY: install
+install:
+	pip install pipenv && pipenv install
