@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/marax27/Codeine.svg?branch=master)](https://travis-ci.org/marax27/Codeine)
 [![Coverage Status](https://coveralls.io/repos/github/marax27/Codeine/badge.svg)](https://coveralls.io/github/marax27/Codeine)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 Computing over Decentralized Network, with P2P
 
