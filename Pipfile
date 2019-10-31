@@ -8,6 +8,7 @@ pycodestyle = "*"
 pytest = "*"
 pytest-cov = "*"
 coveralls = "*"
+pylint = "*"
 
 [packages]
 
