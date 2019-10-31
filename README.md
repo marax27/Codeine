@@ -1,7 +1,7 @@
 # Codeine
 
 [![Build Status](https://travis-ci.org/marax27/Codeine.svg?branch=master)](https://travis-ci.org/marax27/Codeine)
-[![Coverage Status](https://coveralls.io/repos/github/marax27/Codeine/badge.svg)](https://coveralls.io/github/marax27/Codeine)
+[![Coverage Status](https://coveralls.io/repos/github/marax27/Codeine/badge.svg?branch=master)](https://coveralls.io/github/marax27/Codeine?branch=master)
 [![GitHub issues](https://img.shields.io/github/issues/marax27/Codeine.svg)](https://GitHub.com/marax27/Codeine/issues/)
 [![GitHub issues-closed](https://img.shields.io/github/issues-closed/marax27/Codeine.svg)](https://GitHub.com/marax27/Codeine/issues?q=is%3Aissue+is%3Aclosed)
 
