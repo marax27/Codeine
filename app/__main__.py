@@ -1,7 +1,11 @@
+from .shared.configuration import Configuration
 
 
 def main():
-    print('Th̷e̶ Co̢d́e͟in̷e͠ ͘p͏roj͟e̷ct ̧ha͡t͢h a̴͟͟ẃơ̷̧k̵en̡̛.')
+    config = Configuration(__package__) \
+        .add_json_file('config.json')
+
+    print(f'Project Codeine started with configuration: {config}')
 
 
 if __name__ == "__main__":
