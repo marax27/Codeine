@@ -5,7 +5,7 @@ import app.shared.json as json
 class Configuration:
     def __init__(self, package_name: str):
         self._package_name = package_name
-        self._configuration = dict()
+        self._configuration = ConfigurationSection()
 
     def add_json_file(self, filename: str):
         path = get_project_file_path(self._package_name, filename)
@@ -19,15 +19,11 @@ class Configuration:
         return self
 
     def get(self, key: str):
-        if key in self._configuration:
-            return self._configuration[key]
-        raise KeyNotFoundError(key)
+        return self._configuration.get(key)
 
-    def _update(self, new_configuration: dict):
-        duplicate_keys = self._configuration.keys() & new_configuration.keys()
-        if duplicate_keys:
-            raise ConfigurationDuplicateKeysError(duplicate_keys)
-        self._configuration.update(new_configuration)
+    def _update(self, new_obj: dict):
+        current, new = self._configuration, ConfigurationSection(new_obj)
+        self._configuration = ConfigurationSection.combine(current, new)
 
     @staticmethod
     def _try_decode_json(code: str):
@@ -35,6 +31,30 @@ class Configuration:
             return json.to_object(code)
         except json.DecodeError as exc:
             raise ConfigurationFormatError(exc)
+
+
+class ConfigurationSection:
+    def __init__(self, obj=None):
+        self._configuration = obj if obj else {}
+
+    def get(self, key: str):
+        if key in self._configuration:
+            result = self._configuration[key]
+            is_dict = isinstance(result, dict)
+            return ConfigurationSection(result) if is_dict else result
+        raise KeyNotFoundError(key)
+
+    def keys(self) -> set:
+        return set(self._configuration.keys())
+
+    @staticmethod
+    def combine(first, other):
+        duplicate_keys = first.keys() & other.keys()
+        if duplicate_keys:
+            raise ConfigurationDuplicateKeysError(duplicate_keys)
+        obj = first._configuration.copy()
+        obj.update(other._configuration.copy())
+        return ConfigurationSection(obj)
 
 
 class ConfigurationError(Exception):
