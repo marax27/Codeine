@@ -1,6 +1,8 @@
 import pytest
+from dataclasses import make_dataclass
 
 import app.shared.configuration as cfg
+from app.shared.dataclass import BindingError
 
 
 @pytest.mark.parametrize('given_json_value, expected_value', [
@@ -39,3 +41,36 @@ def test_addJsonCode_twoConfigsWithCommonKeys_raiseError():
     sut = cfg.Configuration(None).add_json_code(given_first_code)
     with pytest.raises(cfg.ConfigurationDuplicateKeysError):
         sut.add_json_code(given_other_code)
+
+
+SampleDataclass = make_dataclass('SampleDataclass', [('x', str), ('y', int)])
+
+
+def test_bindAs_sampleCode_expectedDataclassObject():
+    given_code = '{ "Key": {"x": "SampleString", "y": 123} }'
+    expected_object = SampleDataclass('SampleString', 123)
+
+    sut = cfg.Configuration(None).add_json_code(given_code)
+    actual_object = sut.get('Key').bind_as(SampleDataclass)
+
+    assert actual_object == expected_object
+
+
+def test_bindAs_notAllFieldsSpecifiedInCode_BindingError():
+    given_code = '{ "Key": {"x": "SampleString"} }'
+
+    sut = cfg.Configuration(None).add_json_code(given_code)
+    section = sut.get('Key')
+
+    with pytest.raises(BindingError):
+        section.bind_as(SampleDataclass)
+
+
+def test_bindAs_tooManyFieldsInCode_expectedDataclassObject():
+    given_code = '{ "Key": {"x": "SampleString", "y": 123, "z": 7, "t": 77} }'
+    expected_object = SampleDataclass('SampleString', 123)
+
+    sut = cfg.Configuration(None).add_json_code(given_code)
+    actual_object = sut.get('Key').bind_as(SampleDataclass)
+
+    assert actual_object == expected_object

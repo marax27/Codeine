@@ -1,5 +1,6 @@
 from app.shared.files import get_project_file_path
 import app.shared.json as json
+from app.shared.dataclass import bind_dictionary_to
 
 
 class Configuration:
@@ -43,6 +44,9 @@ class ConfigurationSection:
             is_dict = isinstance(result, dict)
             return ConfigurationSection(result) if is_dict else result
         raise KeyNotFoundError(key)
+
+    def bind_as(self, bind_type: type):
+        return bind_dictionary_to(bind_type, self._configuration)
 
     def keys(self) -> set:
         return set(self._configuration.keys())
