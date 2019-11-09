@@ -3,40 +3,40 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class State(ABC):
+class IState(ABC):
     pass
 
 
 @dataclass(frozen=True)
-class TaskResult(ABC):
+class ITaskResult(ABC):
     pass
 
 
 @dataclass(frozen=True)
-class TaskIdentifier(ABC):
+class ITaskIdentifier(ABC):
     pass
 
 
-class TaskIdentifierPool(ABC):
+class ITaskIdentifierPool(ABC):
     @abstractmethod
-    def pop_random_identifier(self) -> TaskIdentifier:
+    def pop_random_identifier(self) -> ITaskIdentifier:
         pass
 
 
-class Task(ABC):
-    def __init__(self, identifier: TaskIdentifier, state: State):
+class ITask(ABC):
+    def __init__(self, identifier: ITaskIdentifier, state: IState):
         self._id = identifier
         self._state = state
 
     @abstractmethod
-    def run(self) -> TaskResult:
+    def run(self) -> ITaskResult:
         pass
 
 
-class TaskFactory:
-    def __init__(self, state: State):
+class ITaskFactory:
+    def __init__(self, state: IState):
         self._state = state
 
     @abstractmethod
-    def create(self, identifier: TaskIdentifier) -> Task:
+    def create(self, identifier: ITaskIdentifier) -> ITask:
         pass
