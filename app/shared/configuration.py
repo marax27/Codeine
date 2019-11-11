@@ -40,9 +40,14 @@ class ConfigurationSection:
 
     def get(self, key: str):
         if key in self._configuration:
-            result = self._configuration[key]
-            is_dict = isinstance(result, dict)
-            return ConfigurationSection(result) if is_dict else result
+            value = self._configuration[key]
+            if isinstance(value, dict):
+                result = ConfigurationSection(value)
+            elif isinstance(value, list):
+                result = tuple(value)
+            else:
+                result = value
+            return result
         raise KeyNotFoundError(key)
 
     def bind_as(self, bind_type: type):

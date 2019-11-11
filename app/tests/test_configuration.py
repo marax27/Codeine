@@ -27,6 +27,33 @@ def test_addJsonCodeAndGet_dictionaryEntry_resultContainsExpectedEntry():
     assert section.get('A') == 123
 
 
+def test_addJsonCodeAndGet_collectionEntry_resultContainsExpectedValues():
+    given_code = '{ "SampleKey": [1, 2, 3] }'
+    sut = cfg.Configuration(None).add_json_code(given_code)
+    section = sut.get('SampleKey')
+    assert 1 in section
+    assert 2 in section
+    assert 3 in section
+
+
+def test_get_tryToModifyCollection_raiseException():
+    given_code = '{ "SampleKey": [1, 2, 3] }'
+    sut = cfg.Configuration(None).add_json_code(given_code)
+    section = sut.get('SampleKey')
+
+    with pytest.raises(TypeError):
+        section[0] = 9
+
+
+def test_get_tryToModifyObject_raiseException():
+    given_code = '{ "SampleKey": { "A": 123 } }'
+    sut = cfg.Configuration(None).add_json_code(given_code)
+    section = sut.get('SampleKey')
+
+    with pytest.raises(TypeError):
+        section['A'] = 222
+
+
 def test_get_nonexistentKey_raiseError():
     given_code = '{ "SampleKey": 123 }'
     sut = cfg.Configuration(None).add_json_code(given_code)
