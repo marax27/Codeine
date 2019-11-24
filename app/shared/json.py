@@ -8,5 +8,9 @@ def to_object(code: str):
         raise DecodeError(exc)
 
 
+def from_object(obj) -> str:
+    return json.dumps(obj)
+
+
 class DecodeError(Exception):
     pass
