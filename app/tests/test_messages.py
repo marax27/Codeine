@@ -51,6 +51,15 @@ def test_mapToBytes_unregisteredMessage_raise():
         given_mapper.map_to_bytes(given_message)
 
 
+def test_mapFromBytes_jsonArray_convertToTuple():
+    given_bytes = b'SAMPLEMSG{"identifier": 1, "values": [[5, 5], [6, 6]]}'
+    given_mapper = MapperFactory.create()
+
+    actual_message: SampleMessage = given_mapper.map_from_bytes(given_bytes)
+    assert isinstance(actual_message.values, tuple)
+    assert isinstance(actual_message.values[0], tuple)
+
+
 def test_mapFromBytes_sampleBytes_expectedMessage():
     given_bytes = b'SAMPLEMSG{"identifier": 1, "values": [[5, 5], [6, 6]]}'
     given_mapper = MapperFactory.create()
