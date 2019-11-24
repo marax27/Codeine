@@ -1,6 +1,6 @@
 import socket
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -14,6 +14,12 @@ class ConnectionSettings:
 
     def to_tuple(self) -> tuple:
         return (self.address, self.port)
+
+
+@dataclass(frozen=True)
+class Packet:
+    data: bytes
+    address: ConnectionSettings
 
 
 class SendError(Exception):
@@ -30,24 +36,28 @@ class NetworkConnection:
     def __init__(self, connection_settings: ConnectionSettings):
         self._connection_settings = connection_settings
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._socket.setblocking(False)
         self._bind_socket()
 
     def __del__(self):
         if self._socket:
             self._socket.close()
 
-    def send(self, data: bytes, connection_settings: ConnectionSettings):
+    def send(self, packet: Packet):
         try:
-            self._socket.sendto(data, connection_settings.to_tuple())
+            connection_address = packet.address.to_tuple()
+            self._socket.sendto(packet.data, connection_address)
         except OSError as exc:
             raise SendError(exc)
 
-    def receive(self) -> Tuple[bytes, ConnectionSettings]:
+    def receive(self) -> Optional[Packet]:
         try:
             data, address = self._socket.recvfrom(65536)
-            return data, ConnectionSettings.from_tuple(address)
+            return Packet(data, ConnectionSettings.from_tuple(address))
+        except BlockingIOError:
+            return None
         except OSError as exc:
-            raise ReadError(exc)
+            raise ReadError(exc.errno)
 
     def _bind_socket(self):
         self._socket.bind(self._connection_settings.to_tuple())
