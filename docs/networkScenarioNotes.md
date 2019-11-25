@@ -7,9 +7,8 @@
 
 ## Scenario 1 
 Story:  
-```
-Agent tries to join the network right after launching Codeine.
-```
+
+>Agent tries to join the network right after launching Codeine.
 
 Prerequisites: None
 
@@ -25,9 +24,9 @@ Scenario extensions:
 ## Scenario 2
 
 Story:
-```
-Agent periodically informs the network that he's still alive.
-```
+
+>Agent periodically informs the network that he's still alive.
+
 
 Prerequisites:
 - Agent is already in the network.
@@ -38,9 +37,8 @@ Scenario:
 ## Scenario 3
 
 Story:
-```
-Agent wants to register a task
-```
+
+>Agent wants to register a task
 
 Prerequisites:
 - Agent is already in the network
@@ -69,9 +67,8 @@ Scenario extensions:
 ## Scenario 4
 
 Story:
-```
-Agent wants to broadcast task results.
-```
+
+>Agent wants to broadcast task results.
 
 Prerequisites:
 - Agent is already in the network
@@ -89,9 +86,8 @@ Scenario extensions:
 ## Scenario 5
 
 Story:
-```
-Agent has received a TASKRES packet with task ID of a task he already has a result of.
-```
+
+>Agent has received a TASKRES packet with task ID of a task he already has a result of.
 
 Prerequisites:
 - Agent is already in the network
@@ -106,9 +102,8 @@ Scenario:
 ## Scenario 6
 
 Story:
-```
-Agent A tries to register a task with ID == X. Agent B replies with STOPWIP packet. Agent A sets task X's state to WIP. Agent B then disconnects.
-```
+
+>Agent A tries to register a task with ID == X. Agent B replies with STOPWIP packet. Agent A sets task X's state to WIP. Agent B then disconnects.
 
 Prerequisites:
 - Agent is already in the network
