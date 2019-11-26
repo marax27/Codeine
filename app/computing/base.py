@@ -18,8 +18,8 @@ class TaskResult(ABC):
 
 class TaskPool(ABC):
     def __init__(self):
-        self._not_started_pool = self._create_initial_pool()
-        self._in_progress_pool = set()
+        self.not_started_pool = self._create_initial_pool()
+        self.in_progress_pool = set()
         self.results = dict()
 
     @abstractmethod
@@ -27,17 +27,18 @@ class TaskPool(ABC):
         pass
 
     def pop_identifier(self) -> TaskIdentifier:
-        return random.choice(tuple(self._not_started_pool))
+        return random.choice(tuple(self.not_started_pool))
 
     def register(self, identifier: TaskIdentifier):
-        self._not_started_pool.remove(identifier)
-        self._in_progress_pool.add(identifier)
+        self.not_started_pool.remove(identifier)
+        self.in_progress_pool.add(identifier)
 
-    def set_in_progress_failed(self, identifier: TaskIdentifier):
-        self._in_progress_pool.remove(identifier)
-        self._not_started_pool.add(identifier)
+    def revert_in_progress(self, identifier: TaskIdentifier):
+        self.in_progress_pool.remove(identifier)
+        self.not_started_pool.add(identifier)
 
-    def set_complete(self, identifier: TaskIdentifier, result: TaskResult):
+    def complete(self, identifier: TaskIdentifier, result: TaskResult):
+        self.in_progress_pool.remove(identifier)
         if identifier not in self.results:
             self.results[identifier] = result
 
