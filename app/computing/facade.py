@@ -1,19 +1,12 @@
-from .computing import Task, TaskIdentifier
-from .state import StateFactory
+from app.shared.configuration import Configuration
+from .base import ComputationalProblem
 
 
-class TaskPool:
-    def __init__(self):
-        raise NotImplementedError()
+def get_computational_problem() -> ComputationalProblem:
+    configuration = Configuration(__package__) \
+        .add_json_file('config.json')
 
-    def pop_identifier(self) -> TaskIdentifier:
-        raise NotImplementedError()
+    path = 'app.computing.' + configuration.get('problemModule')
+    problem_module = __import__(path, fromlist=[None])
 
-
-class TaskFactory:
-    def __init__(self):
-        state_factory = StateFactory()
-        self._state = state_factory.create()
-
-    def create(self, identifier: TaskIdentifier) -> Task:
-        return Task(identifier, self._state)
+    return problem_module.ComputationalProblem()
