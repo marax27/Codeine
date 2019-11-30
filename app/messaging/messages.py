@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from re import search
 from typing import Dict, Tuple
@@ -8,8 +9,9 @@ from dataclasses_json import dataclass_json
 @dataclass_json
 @dataclass(frozen=True)
 class Message(ABC):
+    @classmethod
     @abstractmethod
-    def get_identifier(self) -> str:
+    def get_identifier(cls) -> str:
         pass
 
 
@@ -17,7 +19,8 @@ class MessageMapper:
     def __init__(self):
         self._registered_messages: Dict[str, type] = dict()
 
-    def register(self, message_type: type, identifier: str):
+    def register(self, message_type: type) -> MessageMapper:
+        identifier = message_type.get_identifier()
         self._registered_messages[identifier] = message_type
         return self
 

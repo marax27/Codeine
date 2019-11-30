@@ -10,7 +10,8 @@ class SampleMessage(Message):
     identifier: int
     values: Tuple[Tuple[int, int], ...]
 
-    def get_identifier(self) -> str:
+    @classmethod
+    def get_identifier(cls) -> str:
         return 'SAMPLEMSG'
 
 
@@ -27,7 +28,7 @@ class MessageFactory:
 class MapperFactory:
     @staticmethod
     def create() -> MessageMapper:
-        return MessageMapper().register(SampleMessage, 'SAMPLEMSG')
+        return MessageMapper().register(SampleMessage)
 
 
 def test_messageCreation_sampleMessage_expectedIdentifier():

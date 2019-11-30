@@ -17,14 +17,14 @@ class NetTopologyMessageFactory:
 
 class MapperFactory:
     @staticmethod
-    def create(type_to_register: type, identifer: str) -> MessageMapper:
-        return MessageMapper().register(type_to_register, identifer)
+    def create(type_to_register: type) -> MessageMapper:
+        return MessageMapper().register(type_to_register)
 
 
 def test_nettopologyMapping_sampleMessage_messageMappedCorrectly():
     message = NetTopologyMessageFactory().create()
 
-    mapper = MapperFactory().create(NetTopologyMessage, 'NETTOPO')
+    mapper = MapperFactory().create(NetTopologyMessage)
     message_as_bytes = mapper.map_to_bytes(message)
     message_from_bytes = mapper.map_from_bytes(message_as_bytes)
 
@@ -33,7 +33,7 @@ def test_nettopologyMapping_sampleMessage_messageMappedCorrectly():
 
 def test_imaliveMapping_sampleMessage_messageMappedCorrectly():
     message = ImAliveMessage()
-    mapper = MapperFactory().create(ImAliveMessage, 'IMALIVE')
+    mapper = MapperFactory().create(ImAliveMessage)
 
     message_as_bytes = mapper.map_to_bytes(message)
     message_from_bytes = mapper.map_from_bytes(message_as_bytes)
@@ -44,7 +44,7 @@ def test_imaliveMapping_sampleMessage_messageMappedCorrectly():
 def test_imaliveMapping_sampleMessage_byteMessageContainsMessageId():
     message = ImAliveMessage()
     message_id = message.get_identifier()
-    mapper = MessageMapper().register(ImAliveMessage, message_id)
+    mapper = MessageMapper().register(ImAliveMessage)
 
     message_as_bytes = mapper.map_to_bytes(message)
 
@@ -53,7 +53,7 @@ def test_imaliveMapping_sampleMessage_byteMessageContainsMessageId():
 
 def test_imaliveMapping_sampleMessage_byteMessageContainsEmptyBrackets():
     message = ImAliveMessage()
-    mapper = MapperFactory().create(ImAliveMessage, 'IMALIVE')
+    mapper = MapperFactory().create(ImAliveMessage)
 
     message_as_bytes = mapper.map_to_bytes(message)
 
