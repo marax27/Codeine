@@ -10,14 +10,14 @@ class MessageBroker(StoppableThread):
     def __init__(self, connection_settings: ConnectionSettings):
         super().__init__()
         self._connection = NetworkConnection(connection_settings)
-        self._message_queue = Queue()
-        self._packet_queue = Queue()
+        self._send_queue = Queue()
+        self._recv_queue = Queue()
         self._message_mapper = self._create_message_mapper()
         self._agents: Dict[ConnectionSettings, float] = dict()
 
     def get_messages(self) -> Iterable[Message]:
-        while not self._message_queue.empty():
-            yield self._message_queue.get()
+        while not self._recv_queue.empty():
+            yield self._recv_queue.get()
 
     def run(self):
         while not self.requested_stop():
@@ -27,11 +27,12 @@ class MessageBroker(StoppableThread):
     def _handle_incoming_message(self):
         received = self._connection.receive()
         if received is not None:
-            self._message_queue.put(received)
+            message = self._message_mapper.map_from_bytes(received.data)
+            self._recv_queue.put(message)
 
     def _handle_outgoing_messages(self):
-        while not self._message_queue.empty():
-            _ = self._message_queue.get()
+        while not self._send_queue.empty():
+            _ = self._send_queue.get()
 
     def _create_message_mapper(self) -> MessageMapper:
         return MessageMapper() \
