@@ -3,6 +3,7 @@ from .shared.networking import ConnectionSettings
 from .shared.configuration import Configuration
 from .shared.logs import get_logger, initialize
 from .messaging.message_broker import MessageBroker
+from .messaging.logging_broker import LoggingMessageBroker
 
 
 def main():
@@ -12,7 +13,7 @@ def main():
     logger = get_logger(__package__)
 
     logger.info('Codeine started.')
-    broker = MessageBroker(connection_settings)
+    broker = create_broker(connection_settings)
     broker.start()
 
     try:
@@ -28,7 +29,11 @@ def main():
     logger.info('Stopping Codeine...')
     broker.stop()
     broker.join()
-    logger.info('Stopped.')
+
+
+def create_broker(connection_settings: ConnectionSettings) -> MessageBroker:
+    logger = get_logger('message-broker')
+    return LoggingMessageBroker(connection_settings, logger)
 
 
 if __name__ == '__main__':
