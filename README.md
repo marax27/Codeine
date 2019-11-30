@@ -18,7 +18,7 @@ Computing over Decentralized Network, with P2P
 3. (optional) Setup Visual Studio Code to work with Python
     1. Install official *Python* extension.
     2. Enable linting (`Ctrl+Shift+P` → *Enable Linting*)
-    3. Select *pycodestyle* as a linter (`Ctrl+Shift+P` → *Select Linter*)
+    3. ~~Select *pycodestyle* as a linter (`Ctrl+Shift+P` → *Select Linter*)~~ You'll want 2 linters to be enabled: *pylint* (error detection) and *pycodestyle* (code style hints). To achieve that, make sure these 2 options are set in .vscode/settings.json: `"python.linting.pylintEnabled = true"`, `"python.linting.pycodestyleEnabled = true"`.
 
 ### Run an application
 Use `make run`.
