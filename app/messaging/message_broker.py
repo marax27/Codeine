@@ -1,30 +1,39 @@
-from enum import Enum
 from queue import Queue
-from threading import Event, Thread
+from typing import Dict, Iterable
+from app.shared.multithreading import StoppableThread
 from app.shared.networking import Packet, ConnectionSettings, NetworkConnection
+from .messages import MessageMapper, Message
+from .topology import ImAliveMessage, NetTopologyMessage
 
 
-class MessageBroker(Thread):
+class MessageBroker(StoppableThread):
     def __init__(self, connection_settings: ConnectionSettings):
         super().__init__()
         self._connection = NetworkConnection(connection_settings)
-        self._send_queue = Queue()
-        self._recv_queue = Queue()
-        self._stop_event = Event()
+        self._message_queue = Queue()
+        self._packet_queue = Queue()
+        self._message_mapper = self._create_message_mapper()
+        self._agents: Dict[ConnectionSettings, float] = dict()
 
-    def stop(self):
-        self._stop_event.set()
+    def get_messages(self) -> Iterable[Message]:
+        while not self._message_queue.empty():
+            yield self._message_queue.get()
 
     def run(self):
-        while not self._stop_event.is_set():
+        while not self.requested_stop():
             self._handle_incoming_message()
             self._handle_outgoing_messages()
 
     def _handle_incoming_message(self):
         received = self._connection.receive()
         if received is not None:
-            self._recv_queue.put(received)
+            self._message_queue.put(received)
 
     def _handle_outgoing_messages(self):
-        while not self._send_queue.empty():
-            _ = self._send_queue.get()
+        while not self._message_queue.empty():
+            _ = self._message_queue.get()
+
+    def _create_message_mapper(self) -> MessageMapper:
+        return MessageMapper() \
+            .register(ImAliveMessage) \
+            .register(NetTopologyMessage)
