@@ -1,5 +1,5 @@
 from queue import Queue
-from typing import Dict, Iterable
+from typing import Dict, Iterable, Optional
 from app.shared.multithreading import StoppableThread
 from app.shared.networking import Packet, ConnectionSettings, NetworkConnection
 from .messages import MessageMapper, Message
@@ -25,14 +25,20 @@ class MessageBroker(StoppableThread):
             self._handle_outgoing_messages()
 
     def _handle_incoming_message(self):
-        received = self._connection.receive()
-        if received is not None:
-            message = self._message_mapper.map_from_bytes(received.data)
-            self._recv_queue.put(message)
+        packet = self._connection.receive()
+        if packet is not None:
+            try:
+                message = self._to_message(packet.data)
+                self._recv_queue.put(message)
+            except Exception:
+                return
 
     def _handle_outgoing_messages(self):
         while not self._send_queue.empty():
             _ = self._send_queue.get()
+
+    def _to_message(self, data: bytes) -> Message:
+        return self._message_mapper.map_from_bytes(data)
 
     def _create_message_mapper(self) -> MessageMapper:
         return MessageMapper() \
