@@ -8,7 +8,8 @@ from .messages import Message
 @dataclass_json
 @dataclass(frozen=True)
 class ImAliveMessage(Message):
-    def get_identifier(self) -> str:
+    @classmethod
+    def get_identifier(cls) -> str:
         return "IMALIVE"
 
 
@@ -17,5 +18,6 @@ class ImAliveMessage(Message):
 class NetTopologyMessage(Message):
     agents: Tuple[ConnectionSettings, ...]
 
-    def get_identifier(self) -> str:
+    @classmethod
+    def get_identifier(cls) -> str:
         return "NETTOPO"
