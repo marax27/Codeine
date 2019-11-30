@@ -1,20 +1,20 @@
-from dataclasses_json import dataclass_json
 from dataclasses import dataclass
 from typing import Tuple
-from .messages import Message
+from dataclasses_json import dataclass_json
 from app.shared.networking import ConnectionSettings
+from .messages import Message
 
 
 @dataclass_json
 @dataclass(frozen=True)
-class ImAlive(Message):
+class ImAliveMessage(Message):
     def get_identifier(self) -> str:
         return "IMALIVE"
 
 
 @dataclass_json
 @dataclass(frozen=True)
-class NetTopology(Message):
+class NetTopologyMessage(Message):
     agents: Tuple[ConnectionSettings, ...]
 
     def get_identifier(self) -> str:

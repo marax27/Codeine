@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 from re import search
 from typing import Dict, Tuple
-from dataclasses_json import dataclass_json
-from app.shared import json
 from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 
 
 @dataclass_json
-@dataclass
+@dataclass(frozen=True)
 class Message(ABC):
     @abstractmethod
     def get_identifier(self) -> str:
