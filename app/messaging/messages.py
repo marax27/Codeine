@@ -3,9 +3,11 @@ from re import search
 from typing import Dict, Tuple
 from dataclasses_json import dataclass_json
 from app.shared import json
+from dataclasses import dataclass
 
 
 @dataclass_json
+@dataclass
 class Message(ABC):
     @abstractmethod
     def get_identifier(self) -> str:
@@ -22,8 +24,7 @@ class MessageMapper:
 
     def map_to_bytes(self, message: Message) -> bytes:
         self._assert_registered(message.get_identifier())
-        obj = message.__dict__
-        code = json.from_object(obj)
+        code = message.to_json()
         return (message.get_identifier() + code).encode('utf-8')
 
     def map_from_bytes(self, data: bytes) -> Message:
