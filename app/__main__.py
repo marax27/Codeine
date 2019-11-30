@@ -26,9 +26,10 @@ def main():
     except BaseException as exc:
         logger.error(f'An unexpected exception has occurred: {exc}')
 
-    logger.info('Stopping Codeine...')
+    logger.info('Gracefully stopping Codeine...')
     broker.stop()
     broker.join()
+    logger.info('Gracefully stopped.')
 
 
 def create_broker(connection_settings: ConnectionSettings) -> MessageBroker:
