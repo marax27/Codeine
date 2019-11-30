@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from re import search
 from typing import Dict, Tuple
@@ -18,7 +19,7 @@ class MessageMapper:
     def __init__(self):
         self._registered_messages: Dict[str, type] = dict()
 
-    def register(self, message_type: type):
+    def register(self, message_type: type) -> MessageMapper:
         identifier = message_type.get_identifier()
         self._registered_messages[identifier] = message_type
         return self
