@@ -1,4 +1,4 @@
-from time import sleep
+from time import sleep, time
 from queue import Queue
 from typing import Dict, Iterable
 from app.shared.multithreading import StoppableThread
@@ -31,13 +31,33 @@ class MessageBroker(StoppableThread):
         if packet is not None:
             try:
                 message = self._to_message(packet.data)
-                self._recv_queue.put(message)
             except Exception:
                 return
+
+            sender_address = packet.address
+            identifier = message.get_identifier()
+            if identifier == 'IMALIVE':
+                self._handle_imalive(sender_address)
+            elif identifier == 'NETTOPO':
+                self._handle_nettopo(message, sender_address)
 
     def _handle_outgoing_messages(self):
         while not self._send_queue.empty():
             _ = self._send_queue.get()
+
+    def _handle_imalive(self, sender_address: ConnectionSettings):
+        self._refresh_agent(sender_address)
+
+    def _handle_nettopo(self,
+                        message: NetTopologyMessage,
+                        sender_address: ConnectionSettings
+                        ):
+        addresses = {*message.agents, sender_address}
+        for address in addresses:
+            self._refresh_agent(address)
+
+    def _refresh_agent(self, agent_address: ConnectionSettings):
+        self._agents[agent_address] = time()
 
     def _to_message(self, data: bytes) -> Message:
         return self._message_mapper.map_from_bytes(data)
