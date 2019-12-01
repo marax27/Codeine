@@ -22,7 +22,7 @@ def main():
                 logger.info(f'Received message: {message}')
             if not broker.is_alive():
                 break
-            sleep(0.1)
+            sleep(0.01)
     except KeyboardInterrupt:
         pass
     except BaseException as exc:

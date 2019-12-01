@@ -1,5 +1,6 @@
+from time import sleep
 from queue import Queue
-from typing import Dict, Iterable, Optional
+from typing import Dict, Iterable
 from app.shared.multithreading import StoppableThread
 from app.shared.networking import Packet, ConnectionSettings, NetworkConnection
 from .messages import MessageMapper, Message
@@ -21,10 +22,11 @@ class MessageBroker(StoppableThread):
 
     def run(self):
         while not self.requested_stop():
-            self._handle_incoming_message()
+            self._handle_incoming_packet()
             self._handle_outgoing_messages()
+            sleep(0.01)
 
-    def _handle_incoming_message(self):
+    def _handle_incoming_packet(self):
         packet = self._connection.receive()
         if packet is not None:
             try:

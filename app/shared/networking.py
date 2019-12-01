@@ -17,6 +17,9 @@ class ConnectionSettings:
     def to_tuple(self) -> tuple:
         return (self.address, self.port)
 
+    def __repr__(self) -> str:
+        return f'<{self.address}:{self.port}>'
+
 
 @dataclass(frozen=True)
 class Packet:
