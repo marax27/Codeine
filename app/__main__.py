@@ -20,6 +20,8 @@ def main():
         while True:
             for message in broker.get_messages():
                 logger.info(f'Received message: {message}')
+            if not broker.is_alive():
+                break
             sleep(0.1)
     except KeyboardInterrupt:
         pass
