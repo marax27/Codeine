@@ -1,5 +1,5 @@
 from time import sleep
-from .shared.networking import ConnectionSettings
+from .shared.networking import ConnectionSettings, NetworkConnection
 from .shared.configuration import Configuration
 from .shared.logs import get_logger, initialize
 from .messaging.message_broker import MessageBroker
@@ -36,7 +36,8 @@ def main():
 
 def create_broker(connection_settings: ConnectionSettings) -> MessageBroker:
     logger = get_logger('message-broker')
-    return LoggingMessageBroker(connection_settings, logger)
+    connection = NetworkConnection(connection_settings)
+    return LoggingMessageBroker(connection, logger)
 
 
 if __name__ == '__main__':

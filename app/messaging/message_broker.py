@@ -16,9 +16,9 @@ class Payload:
 
 
 class MessageBroker(StoppableThread):
-    def __init__(self, connection_settings: ConnectionSettings):
+    def __init__(self, connection: NetworkConnection):
         super().__init__()
-        self._connection = NetworkConnection(connection_settings)
+        self._connection = connection
         self._send_queue = Queue()
         self._recv_queue = Queue()
         self._message_mapper = self._create_message_mapper()
