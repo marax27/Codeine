@@ -2,7 +2,6 @@ from logging import Logger
 from app.shared.networking import ConnectionSettings
 from .messages import Message
 from .message_broker import MessageBroker
-from .topology import NetTopologyMessage
 
 
 class LoggingMessageBroker(MessageBroker):
@@ -35,8 +34,8 @@ class LoggingMessageBroker(MessageBroker):
         super()._handle_nettopo(message, sender_address)
         self._logger.info(f'Agents: {self._agents}')
 
-    def _send_to(self, recipients, message):
+    def _send(self, recipients, message):
         count = len(set(recipients))
         identifier = message.get_identifier()
         self._logger.info(f'Sending {identifier} to {count} recipients')
-        super()._send_to(recipients, message)
+        super()._send(recipients, message)
