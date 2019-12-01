@@ -4,7 +4,7 @@ from typing import Dict, Iterable
 from app.shared.multithreading import StoppableThread
 from app.shared.networking import Packet, ConnectionSettings, NetworkConnection
 from .messages import MessageMapper, Message
-from .topology import ImAliveMessage, NetTopologyMessage
+from .topology import AgentState, ImAliveMessage, NetTopologyMessage
 
 
 class MessageBroker(StoppableThread):
@@ -14,7 +14,7 @@ class MessageBroker(StoppableThread):
         self._send_queue = Queue()
         self._recv_queue = Queue()
         self._message_mapper = self._create_message_mapper()
-        self._agents: Dict[ConnectionSettings, float] = dict()
+        self._agents: Dict[ConnectionSettings, AgentState] = dict()
 
     def get_messages(self) -> Iterable[Message]:
         while not self._recv_queue.empty():
