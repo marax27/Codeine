@@ -25,12 +25,18 @@ class LoggingMessageBroker(MessageBroker):
             self._logger.exception(f'Packet -> Message mapping failed: {exc}')
             raise
 
-    def _handle_imalive(self, address: ConnectionSettings):
-        self._logger.info(f'IMALIVE notification from {address}')
-        super()._handle_imalive(address)
+    def _handle_imalive(self, sender_address: ConnectionSettings):
+        self._logger.info(f'IMALIVE notification from {sender_address}')
+        super()._handle_imalive(sender_address)
         self._logger.info(f'Agents: {self._agents}')
 
     def _handle_nettopo(self, message, sender_address):
         self._logger.info(f'Network topology update: {message.agents}')
         super()._handle_nettopo(message, sender_address)
         self._logger.info(f'Agents: {self._agents}')
+
+    def _send_to(self, recipients, message):
+        count = len(set(recipients))
+        identifier = message.get_identifier()
+        self._logger.info(f'Sending {identifier} to {count} recipients')
+        super()._send_to(recipients, message)
