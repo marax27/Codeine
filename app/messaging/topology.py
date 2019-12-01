@@ -5,6 +5,11 @@ from .messages import Message
 
 
 @dataclass(frozen=True)
+class AgentState:
+    last_notification_time: float
+
+
+@dataclass(frozen=True)
 class ImAliveMessage(Message):
     @classmethod
     def get_identifier(cls) -> str:
