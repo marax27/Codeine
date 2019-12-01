@@ -37,8 +37,7 @@ class NetworkConnection:
 
     def __init__(self, connection_settings: ConnectionSettings):
         self._connection_settings = connection_settings
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._socket.setblocking(False)
+        self._socket = self._create_socket()
         self._bind_socket()
 
     def __del__(self):
@@ -63,3 +62,9 @@ class NetworkConnection:
 
     def _bind_socket(self):
         self._socket.bind(self._connection_settings.to_tuple())
+
+    def _create_socket(self) -> socket.socket:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        sock.setblocking(False)
+        return sock
