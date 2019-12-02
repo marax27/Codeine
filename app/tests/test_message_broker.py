@@ -66,3 +66,18 @@ def test_imalive_receiveImalive_sendNettopo(
     message = mapper.map_from_bytes(sent_packet.data)
     assert sent_packet.address == given_address
     assert isinstance(message, NetTopologyMessage)
+
+
+def test_nettopo_receiveImalive_nettopoDoesntContainOurAddress(
+        connection: NetworkConnectionMock,
+        mapper: MessageMapper
+        ):
+    given_address = ConnectionSettingsFactory.sample()
+    given_packet = Packet(b'IMALIVE{}', given_address)
+    connection.to_receive = [given_packet]
+
+    wait_for_response()
+
+    sent_packet: Packet = connection.sent_by_broker[0]
+    message: NetTopologyMessage = mapper.map_from_bytes(sent_packet.data)
+    assert given_address not in message.agents

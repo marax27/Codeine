@@ -65,7 +65,8 @@ class MessageBroker(StoppableThread):
 
     def _handle_imalive(self, sender_address: ConnectionSettings):
         self._refresh_agent(sender_address)
-        message = NetTopologyMessage(tuple(self._agents.keys()))
+        agents = tuple(a for a in self._agents if a != sender_address)
+        message = NetTopologyMessage(agents)
         self.send_to(message, hash(sender_address))
 
     def _handle_nettopo(self,
