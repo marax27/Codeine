@@ -13,6 +13,10 @@ class ConnectionSettingsFactory:
     def sample():
         return ConnectionSettings('1.2.3.4', 6789)
 
+    @staticmethod
+    def other():
+        return ConnectionSettings('1.2.3.5', 6789)
+
 
 class NetworkConnectionMock:
     def __init__(self):
@@ -78,8 +82,8 @@ def test_nettopo_receiveImalive_nettopoDoesntContainOurAddress(
         ):
     given_address = ConnectionSettingsFactory.sample()
     given_packet = get_imalive_packet(given_address)
-    connection.to_receive = [given_packet]
 
+    connection.to_receive = [given_packet]
     wait_for_response()
 
     sent_packet: Packet = connection.sent_by_broker[0]
@@ -91,12 +95,8 @@ def test_nettopo_nettopoWithAgentsThenImalive_brokerSendsPreviouslyAcquiredAgent
         connection: NetworkConnectionMock,
         mapper: MessageMapper
         ):
-    given_addresses = [
-        ConnectionSettings('1.2.3.4', 8000),
-        ConnectionSettings('1.2.3.5', 8000),
-        ConnectionSettings('1.2.3.6', 8000)
-    ]
-    sender_address = ConnectionSettings('1.2.3.1', 23)
+    given_addresses = [ConnectionSettingsFactory.other()]
+    sender_address = ConnectionSettingsFactory.sample()
     given_message = NetTopologyMessage(given_addresses)
     message_as_bytes = mapper.map_to_bytes(given_message)
     given_packet = Packet(message_as_bytes, sender_address)
