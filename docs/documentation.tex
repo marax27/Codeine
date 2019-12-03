@@ -1,7 +1,7 @@
 \documentclass{article}
 \usepackage[a4paper]{geometry}
 \usepackage[utf8]{inputenc}
-\usepackage{polski}
+\usepackage[english]{babel}
 \usepackage{tabularx}
 \usepackage{indentfirst}
 \usepackage{multirow}
@@ -68,7 +68,7 @@
 \section{Assumptions \& Constraints}
 \begin{itemize}
     \item Packet type - a seven letter long word consisting only of upper case letters (e.g. IMALIVE, NETTOPO)
-    \item The solution of a single task should be able to fit in a single UDP packet (<64kB)
+    \item The solution of a single task should be able to fit in a single UDP packet (\verb!<64kB!)
     \item Every task has it's ID and immutable State, common for all tasks
     \item Every task can be solved
 \end{itemize}
@@ -147,29 +147,27 @@ Agent wants to register a task \\\\
 \textbf{Scenario:}
 \begin{enumerate}
     \item Agent broadcasts REGTASK packet.
-    \item Agent waits for ??? seconds for replies.
-    \item Every other agent registered in his net topology base replies with CARRYON.
-    \item Agent starts calculations on that task. End of Scenario 3.
+    \item Agent starts calculations.
+    \item No response from network. End of Scenario 3
 \end{enumerate}
 \textbf{Scenario extensions:}
 \begin{itemize}
-    \item[3a.] There is no response from the network.  
+    \item[3a.] An agent replies with STOPWIP.
     \begin{itemize} 
-    \item[3a.1.] Agent starts calculations on that task. End of Scenario 3.
+    \item[3a.1.] Agent stops calculations.
+    \item[3a.2.] Agent sets that task's state to WIP.
+    \item[3a.3.] Agent chooses another task. Repeat from point 1. End of Scenario 3.  
     \end{itemize}
-    \item[3b.] An agent replies with STOPWIP.
+    \item[3b.] An agent replies with STOPLOW.  
     \begin{itemize} 
-    \item[3b.1.] Agent sets that task's state to WIP.
+    \item[3b.1.] Agent stops calculations.
     \item[3b.2.] Agent chooses another task. Repeat from point 1. End of Scenario 3.  
     \end{itemize}
-    \item[3c.] An agent replies with STOPLOW.  
+    \item[3c.] An agent replies with TASKRES. 
     \begin{itemize} 
-    \item[3c.1.] Agent chooses another task. Repeat from point 1. End of Scenario 3.  
-    \end{itemize}
-    \item[3d.] An agent replies with TASKRES. 
-    \begin{itemize} 
-    \item[3d.1.] Agent registers received task result. 
-    \item[3d.2.] Agent chooses another task. Repeat from point 1. End of Scenario 3.  
+    \item[3c.1.] Agent stops calculations.
+    \item[3c.2.] Agent registers received task result. 
+    \item[3c.3.] Agent chooses another task. Repeat from point 1. End of Scenario 3.  
     \end{itemize}
 \end{itemize}
 
@@ -227,5 +225,18 @@ Agent A tries to register a task with ID == X. Agent B replies with STOPWIP pack
     \item Agent A doesn't receive IMALIVE packets from agent B for ??? minutes.
     \item Agent A sets task X's state to unregistered/free/not-yet-completed. End of Scenario 6.
 \end{enumerate}
+
+\section{Diagrams}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{diagrams/BrokerDiagram.eps}
+	\caption{MessageBroker Class Diagram}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{diagrams/FactoryDiagram.eps}
+	\caption{Computational Problem Factory Diagram}
+\end{figure}
 
 \end{document}
