@@ -1,12 +1,12 @@
 from logging import Logger
-from app.shared.networking import ConnectionSettings
+from app.shared.networking import ConnectionSettings, NetworkConnection
 from .messages import Message
 from .message_broker import MessageBroker
 
 
 class LoggingMessageBroker(MessageBroker):
-    def __init__(self, connection_settings: ConnectionSettings, logger: Logger):
-        super().__init__(connection_settings)
+    def __init__(self, connection: NetworkConnection, logger: Logger):
+        super().__init__(connection)
         self._logger = logger
 
     def run(self):

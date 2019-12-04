@@ -16,9 +16,9 @@ class Payload:
 
 
 class MessageBroker(StoppableThread):
-    def __init__(self, connection_settings: ConnectionSettings):
+    def __init__(self, connection: NetworkConnection):
         super().__init__()
-        self._connection = NetworkConnection(connection_settings)
+        self._connection = connection
         self._send_queue = Queue()
         self._recv_queue = Queue()
         self._message_mapper = self._create_message_mapper()
@@ -65,7 +65,8 @@ class MessageBroker(StoppableThread):
 
     def _handle_imalive(self, sender_address: ConnectionSettings):
         self._refresh_agent(sender_address)
-        message = NetTopologyMessage(tuple(self._agents.keys()))
+        agents = tuple(a for a in self._agents if a != sender_address)
+        message = NetTopologyMessage(agents)
         self.send_to(message, hash(sender_address))
 
     def _handle_nettopo(self,
