@@ -2,8 +2,8 @@ from time import sleep
 from .shared.networking import ConnectionSettings, NetworkConnection
 from .shared.configuration import Configuration
 from .shared.logs import get_logger, initialize
-from .messaging.message_broker import MessageBroker
-from .messaging.logging_broker import LoggingMessageBroker
+from .messaging.broker import Broker
+from .messaging.logging_broker import LoggingBroker
 
 
 def main():
@@ -18,8 +18,8 @@ def main():
 
     try:
         while True:
-            for message in broker.get_messages():
-                logger.info(f'Received message: {message}')
+            for command in broker.get_commands():
+                logger.info(f'Received command: {command}')
             if not broker.is_alive():
                 break
             sleep(0.01)
@@ -34,10 +34,10 @@ def main():
     logger.info('Gracefully stopped.')
 
 
-def create_broker(connection_settings: ConnectionSettings) -> MessageBroker:
-    logger = get_logger('message-broker')
+def create_broker(connection_settings: ConnectionSettings) -> Broker:
+    logger = get_logger('broker')
     connection = NetworkConnection(connection_settings)
-    return LoggingMessageBroker(connection, logger)
+    return LoggingBroker(connection, logger)
 
 
 if __name__ == '__main__':

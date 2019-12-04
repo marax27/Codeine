@@ -3,7 +3,7 @@ from time import time
 from typing import Dict, Iterable, Optional, Tuple
 from dataclasses import dataclass
 from app.shared.networking import ConnectionSettings
-from .messages import Message
+from .commands import Command
 
 
 @dataclass(frozen=True)
@@ -43,14 +43,14 @@ class AgentIdentifierNotFoundError(Exception):
 
 
 @dataclass(frozen=True)
-class ImAliveMessage(Message):
+class ImAliveCommand(Command):
     @classmethod
     def get_identifier(cls) -> str:
         return "IMALIVE"
 
 
 @dataclass(frozen=True)
-class NetTopologyMessage(Message):
+class NetTopologyCommand(Command):
     agents: Tuple[ConnectionSettings, ...]
 
     @classmethod
