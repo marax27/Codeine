@@ -48,9 +48,9 @@
 \section{Glossary}
 \begin{itemize}
     \item Agent - single application instance, is able to compute one subproblem (task) at a time
-    \item Computational problem - problem solvable with Codeine. It should be divisible into a finite amount of subproblems (tasks) which can be solved independent of each other
+    \item Computational problem - problem solvable with Codeine. It should be divisible into a finite amount of subproblems which can be solved independent of each other
     \item Computational network (usually referred to as "network") - a network of agents communicating with each other, who together solve one computational problem
-    \item Task - a single subproblem of the computational problem
+    \item Subproblem - a single subproblem of the computational problem
 \end{itemize}
 
 \section{Requirements}
@@ -79,7 +79,7 @@
 \begin{itemize}
     \item Topology discovery, registering agents, agent check
     \begin{itemize}
-        \item IMALIVE - I am alive \verb!<>!
+        \item IMALIVE - send empty packet informing that agent is still in the network \verb!<>!
         \item NETTOPO - send network topology \verb!<agent[]>!
     \end{itemize}
     \item Task assignment
@@ -99,10 +99,11 @@
 \end{itemize}
 
 \subsection{Rules}
+\# - broadcast
 \begin{itemize}
-    \item IMALIVE $\rightarrow$ NETTOPO (optional)
-    \item REGTASK $\rightarrow$ STOPWIP $\vert$ STOPLOW $\vert$ TASKRES
-    \item TASKRES $\rightarrow$ ACKNOWL
+    \item \#{}IMALIVE $\rightarrow$ NETTOPO (optional)
+    \item \#{}REGTASK $\rightarrow$ STOPWIP $\vert$ STOPLOW $\vert$ TASKRES
+    \item \#{}TASKRES $\rightarrow$ ACKNOWL
 \end{itemize}
 
 \subsection{Network scenarios}
@@ -225,6 +226,16 @@ Agent A tries to register a task with ID == X. Agent B replies with STOPWIP pack
     \item Agent A doesn't receive IMALIVE packets from agent B for ??? minutes.
     \item Agent A sets task X's state to unregistered/free/not-yet-completed. End of Scenario 6.
 \end{enumerate}
+
+\section{Computational problem}
+The chosen problem is finding a hash created with SHA1 cipher corresponding to a hardcoded hash of a 6 letter password.
+The goal is to find hashes for all possible 6 character combinations of lower case letters and digits and compare them to the hardcoded password until the correct one is found.
+In the worst case scenario, $36^6$ hashes have to be calculated.
+
+To solve it with a decentralized computing network, it has been split into $36^2$ subproblems,
+each consisting of $36^4$ hashes to calculate. They are divided based on the first two characters,
+e.g. one subproblem is to find hashes of all 6 character long strings that start with "bg".
+Each agent can compute only one subproblem at a time.
 
 \section{Diagrams}
 \begin{figure}[H]
