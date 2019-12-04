@@ -1,7 +1,8 @@
 from threading import Event, Thread
+from abc import ABC, abstractmethod
 
 
-class StoppableThread(Thread):
+class StoppableThread(Thread, ABC):
     def __init__(self):
         super().__init__()
         self._stop_event = Event()
@@ -11,3 +12,8 @@ class StoppableThread(Thread):
 
     def requested_stop(self) -> bool:
         return self._stop_event.is_set()
+
+    @abstractmethod
+    def run(self):
+        pass
+    

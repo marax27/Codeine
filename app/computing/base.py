@@ -2,6 +2,7 @@ import random
 from abc import ABC, abstractmethod
 from threading import Thread
 from typing import Optional, Set
+from app.shared.multithreading import StoppableThread
 
 
 class State(ABC):
@@ -43,7 +44,7 @@ class TaskPool(ABC):
             self.results[identifier] = result
 
 
-class Task(ABC, Thread):
+class Task(StoppableThread, ABC):
     def __init__(self, identifier: TaskIdentifier, state: State):
         super().__init__()
         self.identifier = identifier
