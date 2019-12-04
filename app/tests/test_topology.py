@@ -1,6 +1,6 @@
 import pytest
 
-from app.messaging.topology import NetTopologyCommand, ImAliveCommand
+from app.messaging.topology import Topology, NetTopologyCommand, ImAliveCommand, AgentIdentifierNotFoundError
 from app.messaging.commands import CommandMapper
 from app.shared.networking import ConnectionSettings
 
@@ -58,3 +58,29 @@ def test_imaliveMapping_sampleCommand_byteCommandContainsEmptyBrackets():
     command_as_bytes = mapper.map_to_bytes(command)
 
     assert b'{}' in command_as_bytes
+
+
+def test_addOrUpdate_sampleAddress_addressPresentInReturnedAddresses():
+    given_address = ConnectionSettings('1.2.3.4', 1234)
+    sut = Topology()
+
+    sut.add_or_update(given_address)
+    assert given_address in sut.get_addresses()
+
+
+def test_addOrUpdateMany_sampleAddresses_initialAndReturnedAddressesAreEqual():
+    given_addresses = [
+        ConnectionSettings('1.2.3.4', 1000),
+        ConnectionSettings('1.2.3.5', 2000)
+    ]
+    sut = Topology()
+
+    sut.add_or_update_many(given_addresses)
+    assert set(sut.get_addresses()) == set(given_addresses)
+
+
+def test_getAddressesById_validIdentifier_returnExpectedAddress():
+    sut = Topology()
+
+    with pytest.raises(AgentIdentifierNotFoundError):
+        sut.get_address_by_id(123)
