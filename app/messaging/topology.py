@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import abstractmethod
 from time import time
-from typing import ClassVar, Dict, Iterable, Tuple
+from typing import ClassVar, Dict, Iterable, Set, Tuple
 from dataclasses import dataclass
 from app.shared.networking import ConnectionSettings
 from .commands import Command, Broadcast, ReturnToSender, CommandDestination
@@ -21,9 +21,15 @@ class Topology:
 
     def __init__(self):
         self._agents: Dict[ConnectionSettings, AgentState] = dict()
+        self._forbidden: Set[ConnectionSettings] = set()
+
+    def with_forbidden(self, address: ConnectionSettings) -> Topology:
+        self._forbidden.add(address)
+        return self
 
     def add_or_update(self, address: ConnectionSettings):
-        self._agents[address] = AgentState.create()
+        if address not in self._forbidden:
+            self._agents[address] = AgentState.create()
 
     def add_or_update_many(self, addresses: Iterable[ConnectionSettings]):
         for address in addresses:
