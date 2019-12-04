@@ -1,11 +1,11 @@
 from time import sleep, time
 from queue import Queue
-from typing import Dict, Iterable, Optional
+from typing import Iterable, Optional
 from dataclasses import dataclass
 from app.shared.multithreading import StoppableThread
 from app.shared.networking import Packet, ConnectionSettings, NetworkConnection
 from .messages import MessageMapper, Message
-from .topology import AgentState, ImAliveMessage, NetTopologyMessage
+from .topology import Topology, ImAliveMessage, NetTopologyMessage
 
 
 @dataclass(frozen=True)
@@ -22,7 +22,7 @@ class MessageBroker(StoppableThread):
         self._send_queue = Queue()
         self._recv_queue = Queue()
         self._message_mapper = self._create_message_mapper()
-        self._agents: Dict[ConnectionSettings, AgentState] = dict()
+        self._topology = Topology()
 
     def get_messages(self) -> Iterable[Message]:
         while not self._recv_queue.empty():
@@ -49,11 +49,13 @@ class MessageBroker(StoppableThread):
                 return
 
             sender_address = packet.address
+            self._topology.add_or_update(sender_address)
+
             identifier = message.get_identifier()
             if identifier == 'IMALIVE':
                 self._handle_imalive(sender_address)
             elif identifier == 'NETTOPO':
-                self._handle_nettopo(message, sender_address)
+                self._handle_nettopo(message)
 
     def _handle_outgoing_messages(self):
         while not self._send_queue.empty():
@@ -64,33 +66,21 @@ class MessageBroker(StoppableThread):
             self._send(recipients, message)
 
     def _handle_imalive(self, sender_address: ConnectionSettings):
-        self._refresh_agent(sender_address)
-        agents = tuple(a for a in self._agents if a != sender_address)
+        all_addresses = self._topology.get_addresses()
+        agents = tuple(a for a in all_addresses if a != sender_address)
         message = NetTopologyMessage(agents)
         self.send_to(message, hash(sender_address))
 
-    def _handle_nettopo(self,
-                        message: NetTopologyMessage,
-                        sender_address: ConnectionSettings
-                        ):
-        addresses = {*message.agents, sender_address}
-        for address in addresses:
-            self._add_agent(address)
-
-    def _add_agent(self, agent_address: ConnectionSettings):
-        if agent_address not in self._agents:
-            self._refresh_agent(agent_address)
-
-    def _refresh_agent(self, agent_address: ConnectionSettings):
-        self._agents[agent_address] = time()
+    def _handle_nettopo(self, message: NetTopologyMessage):
+        self._topology.add_or_update_many(message.agents)
 
     def _to_message(self, data: bytes) -> Message:
         return self._message_mapper.map_from_bytes(data)
 
     def _get_recipients_by_id(self, recipient_id: Optional[int]) -> Iterable[ConnectionSettings]:
         if recipient_id is None:
-            return self._agents.keys()
-        return {addr for addr in self._agents if hash(addr) == recipient_id}
+            return self._topology.get_addresses()
+        return {self._topology.get_address_by_id(recipient_id)}
 
     def _send(self, recipients: Iterable[ConnectionSettings], message: Message):
         message_as_bytes = self._message_mapper.map_to_bytes(message)
