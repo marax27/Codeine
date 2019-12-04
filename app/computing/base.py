@@ -44,7 +44,7 @@ class TaskPool(ABC):
             self.results[identifier] = result
 
 
-class Task(StoppableThread, ABC):
+class Task(StoppableThread):
     def __init__(self, identifier: TaskIdentifier, state: State):
         super().__init__()
         self.identifier = identifier
