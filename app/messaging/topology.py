@@ -1,6 +1,6 @@
 from __future__ import annotations
 from time import time
-from typing import Dict, Iterable, Optional, Tuple
+from typing import Dict, Iterable, Tuple
 from dataclasses import dataclass
 from app.shared.networking import ConnectionSettings
 from .commands import Command

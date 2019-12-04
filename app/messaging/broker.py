@@ -1,4 +1,4 @@
-from time import sleep, time
+from time import sleep
 from queue import Queue
 from typing import Iterable, Optional
 from dataclasses import dataclass
