@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Set
 import pytest
 from app.computing.base import TaskPool, TaskIdentifier, TaskResult
+from app.computing.problem import Task, State
 
 
 NUMBER_OF_IDENTIFIERS = 3
@@ -20,6 +21,20 @@ class SampleTaskResult(TaskResult):
 class SampleTaskPool(TaskPool):
     def _create_initial_pool(self) -> Set[SampleTaskIdentifier]:
         return set(map(SampleTaskIdentifier, range(NUMBER_OF_IDENTIFIERS)))
+
+@dataclass(frozen=True)
+class ProblemTaskIdentifier(TaskIdentifier):
+    value: str  
+
+
+def test_task_computing_findingAnswerShort():
+    answer_id = ProblemTaskIdentifier("ka")
+    state = State("8c8b31cb137cfa565cc6057b4c4e0e9f04305ac2")
+    task = Task(answer_id, state)
+    task.run()
+
+    assert task.result.result == 'kacpi4'
+
 
 
 def test_taskPool_creation_expectedElementsInPool():
