@@ -33,6 +33,9 @@ class NetworkConnectionMock:
             return element
         return None
 
+    def get_address(self) -> ConnectionSettings:
+        return ConnectionSettings('412.412.412.412', 99999)
+
 
 def wait_for_response():
     sleep(0.1)
@@ -76,28 +79,13 @@ def test_imalive_receiveImalive_sendNettopo(
     assert isinstance(command, NetTopologyCommand)
 
 
-def test_nettopo_receiveImalive_nettopoDoesntContainOurAddress(
+def test_nettopo_sendBrokerItsAddress_brokerDoesntRegisterTheAddress(
         connection: NetworkConnectionMock,
         mapper: CommandMapper
         ):
-    given_address = ConnectionSettingsFactory.sample()
-    given_packet = get_imalive_packet(given_address)
-
-    connection.to_receive = [given_packet]
-    wait_for_response()
-
-    sent_packet: Packet = connection.sent_by_broker[0]
-    command: NetTopologyCommand = mapper.map_from_bytes(sent_packet.data)
-    assert given_address not in command.agents
-
-
-def test_nettopo_nettopoWithAgentsThenImalive_brokerSendsPreviouslyAcquiredAgents(
-        connection: NetworkConnectionMock,
-        mapper: CommandMapper
-        ):
-    given_addresses = [ConnectionSettingsFactory.other()]
+    given_address = connection.get_address()
     sender_address = ConnectionSettingsFactory.sample()
-    given_command = NetTopologyCommand(given_addresses)
+    given_command = NetTopologyCommand([given_address])
     command_as_bytes = mapper.map_to_bytes(given_command)
     given_packet = Packet(command_as_bytes, sender_address)
 
@@ -109,4 +97,4 @@ def test_nettopo_nettopoWithAgentsThenImalive_brokerSendsPreviouslyAcquiredAgent
 
     sent_packet: Packet = connection.sent_by_broker[0]
     command: NetTopologyCommand = mapper.map_from_bytes(sent_packet.data)
-    assert set(given_addresses) == set(command.agents)
+    assert given_address not in set(command.agents)

@@ -84,3 +84,9 @@ def test_getAddressesById_validIdentifier_returnExpectedAddress():
 
     with pytest.raises(AgentIdentifierNotFoundError):
         sut.get_address_by_id(123)
+
+
+def test_withForbidden_addForbiddenAddress_addressNotAdded():
+    given_address = ConnectionSettings('1.2.3.4', 1000)
+    sut = Topology().with_forbidden(given_address)
+    assert given_address not in sut.get_addresses()
