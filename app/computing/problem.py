@@ -46,7 +46,7 @@ class ComputationalProblem(base.ComputationalProblem):
         return TaskPool()
 
     def create_state(self) -> State:
-        return State("28b7354b5bffcb714eb07639d540570de6f22bf0")
+        return State("8c8b31cb137cfa565cc6057b4c4e0e9f04305ac2")
 
     def create_task(self, identifier: TaskIdentifier, state: State) -> Task:
         return Task(identifier, state)
