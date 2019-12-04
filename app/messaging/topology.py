@@ -1,9 +1,10 @@
 from __future__ import annotations
+from abc import abstractmethod
 from time import time
-from typing import Dict, Iterable, Tuple
+from typing import ClassVar, Dict, Iterable, Tuple
 from dataclasses import dataclass
 from app.shared.networking import ConnectionSettings
-from .commands import Command
+from .commands import Command, Broadcast, ReturnToSender, CommandDestination
 
 
 @dataclass(frozen=True)
@@ -43,16 +44,32 @@ class AgentIdentifierNotFoundError(Exception):
 
 
 @dataclass(frozen=True)
-class ImAliveCommand(Command):
+class NetworkCommand(Command):
+    @abstractmethod
+    def invoke(self, receiver: Topology) -> Iterable[Command]:
+        pass
+
+
+@dataclass(frozen=True)
+class ImAliveCommand(NetworkCommand):
+    response_destination: ClassVar[CommandDestination] = ReturnToSender()
+
     @classmethod
     def get_identifier(cls) -> str:
         return "IMALIVE"
 
+    def invoke(self, receiver: Topology) -> Iterable[Command]:
+        yield NetTopologyCommand(agents=receiver.get_addresses())
+
 
 @dataclass(frozen=True)
-class NetTopologyCommand(Command):
+class NetTopologyCommand(NetworkCommand):
     agents: Tuple[ConnectionSettings, ...]
 
     @classmethod
     def get_identifier(cls) -> str:
         return "NETTOPO"
+
+    def invoke(self, receiver: Topology) -> Iterable[Command]:
+        receiver.add_or_update_many(self.agents)
+        yield from ()
