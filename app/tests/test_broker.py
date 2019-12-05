@@ -2,9 +2,9 @@ from time import sleep
 from typing import Optional
 import pytest
 from app.shared.networking import Packet
-from app.messaging.messages import MessageMapper
-from app.messaging.topology import ImAliveMessage, NetTopologyMessage
-from app.messaging.message_broker import MessageBroker
+from app.messaging.commands import CommandMapper
+from app.messaging.topology import ImAliveCommand, NetTopologyCommand
+from app.messaging.broker import Broker
 from app.shared.networking import ConnectionSettings
 
 
@@ -33,6 +33,9 @@ class NetworkConnectionMock:
             return element
         return None
 
+    def get_address(self) -> ConnectionSettings:
+        return ConnectionSettings('412.412.412.412', 99999)
+
 
 def wait_for_response():
     sleep(0.1)
@@ -45,7 +48,7 @@ def get_imalive_packet(address: ConnectionSettings) -> Packet:
 @pytest.fixture()
 def connection():
     result = NetworkConnectionMock()
-    broker = MessageBroker(result)
+    broker = Broker(result)
     broker.start()
     yield result
     broker.stop()
@@ -54,15 +57,15 @@ def connection():
 
 @pytest.fixture()
 def mapper():
-    result = MessageMapper() \
-        .register(ImAliveMessage) \
-        .register(NetTopologyMessage)
+    result = CommandMapper() \
+        .register(ImAliveCommand) \
+        .register(NetTopologyCommand)
     yield result
 
 
 def test_imalive_receiveImalive_sendNettopo(
         connection: NetworkConnectionMock,
-        mapper: MessageMapper
+        mapper: CommandMapper
         ):
     given_address = ConnectionSettingsFactory.sample()
     given_packet = get_imalive_packet(given_address)
@@ -71,35 +74,20 @@ def test_imalive_receiveImalive_sendNettopo(
     wait_for_response()
 
     sent_packet: Packet = connection.sent_by_broker[0]
-    message = mapper.map_from_bytes(sent_packet.data)
+    command = mapper.map_from_bytes(sent_packet.data)
     assert sent_packet.address == given_address
-    assert isinstance(message, NetTopologyMessage)
+    assert isinstance(command, NetTopologyCommand)
 
 
-def test_nettopo_receiveImalive_nettopoDoesntContainOurAddress(
+def test_nettopo_sendBrokerItsAddress_brokerDoesntRegisterTheAddress(
         connection: NetworkConnectionMock,
-        mapper: MessageMapper
+        mapper: CommandMapper
         ):
-    given_address = ConnectionSettingsFactory.sample()
-    given_packet = get_imalive_packet(given_address)
-
-    connection.to_receive = [given_packet]
-    wait_for_response()
-
-    sent_packet: Packet = connection.sent_by_broker[0]
-    message: NetTopologyMessage = mapper.map_from_bytes(sent_packet.data)
-    assert given_address not in message.agents
-
-
-def test_nettopo_nettopoWithAgentsThenImalive_brokerSendsPreviouslyAcquiredAgents(
-        connection: NetworkConnectionMock,
-        mapper: MessageMapper
-        ):
-    given_addresses = [ConnectionSettingsFactory.other()]
+    given_address = connection.get_address()
     sender_address = ConnectionSettingsFactory.sample()
-    given_message = NetTopologyMessage(given_addresses)
-    message_as_bytes = mapper.map_to_bytes(given_message)
-    given_packet = Packet(message_as_bytes, sender_address)
+    given_command = NetTopologyCommand([given_address])
+    command_as_bytes = mapper.map_to_bytes(given_command)
+    given_packet = Packet(command_as_bytes, sender_address)
 
     connection.to_receive.append(given_packet)
     wait_for_response()
@@ -108,5 +96,5 @@ def test_nettopo_nettopoWithAgentsThenImalive_brokerSendsPreviouslyAcquiredAgent
     wait_for_response()
 
     sent_packet: Packet = connection.sent_by_broker[0]
-    message: NetTopologyMessage = mapper.map_from_bytes(sent_packet.data)
-    assert set(given_addresses) == set(message.agents)
+    command: NetTopologyCommand = mapper.map_from_bytes(sent_packet.data)
+    assert given_address not in set(command.agents)

@@ -47,6 +47,9 @@ class NetworkConnection:
         if self._socket:
             self._socket.close()
 
+    def get_address(self) -> ConnectionSettings:
+        return self._connection_settings
+
     def send(self, packet: Packet):
         try:
             connection_address = packet.address.to_tuple()
