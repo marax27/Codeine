@@ -47,7 +47,7 @@
 %------------------------------------------------------------
 \section{Glossary}
 \begin{itemize}
-    \item Agent - single application instance, is able to compute one subproblem (task) at a time
+    \item Agent - single application instance, is able to compute one subproblem at a time
     \item Computational problem - problem solvable with Codeine. It should be divisible into a finite amount of subproblems which can be solved independent of each other
     \item Computational network (usually referred to as "network") - a network of agents communicating with each other, who together solve one computational problem
     \item Subproblem - a single subproblem of the computational problem
@@ -59,38 +59,37 @@
     \item We should assume that about 5 agents at once can work on our computational problem
     \item Every agent should have exactly the same application
     \item After application launch, agent should automatically attempt to discover other agents in the network
-    \item The computational problem itself doesn't matter, it should only allow for long enough computing time to let us see the network working as intended (officially 1 hour on 5 agents, non-officially 10 - 20 mins)
-    \item Task assignment should be decentralized
+    \item The computational problem itself doesn't matter, it should only allow for long enough computing time to let us see the network working as intended
+    \item Subproblem assignment should be decentralized
     \item Agents should be immune to other agents disconnecting from the network, there should be no side effects
     \item Results should be visualized, accessible (in the best case in real time)
 \end{itemize}
 
 \section{Assumptions \& Constraints}
 \begin{itemize}
-    \item Packet type - a seven letter long word consisting only of upper case letters (e.g. IMALIVE, NETTOPO)
-    \item The solution of a single task should be able to fit in a single UDP packet (\verb!<64kB!)
-    \item Every task has it's ID and immutable State, common for all tasks
-    \item Every task can be solved
+    \item Packet type - a string consisting of only upper case letters (e.g. IMALIVE, NETTOPOLOGY)
+    \item The solution of a single subproblem should be able to fit in a single UDP packet (\verb!<64kB!)
+    \item Every subproblem has it's ID and immutable State, common for all subproblems
+    \item Every subproblem can be solved
 \end{itemize}
 
 \section{Networking}
 \subsection{Packets}
 
 \begin{itemize}
-    \item Topology discovery, registering agents, agent check
+    \item Topology discovery, registering agents
     \begin{itemize}
-        \item IMALIVE - send empty packet informing that agent is still in the network \verb!<>!
-        \item NETTOPO - send network topology \verb!<agent[]>!
+        \item IMALIVE - send empty packet informing that agent is in the network \verb!<>!
+        \item NETTOPOLOGY - send network topology \verb!<agent[]>!
     \end{itemize}
-    \item Task assignment
+    \item Subproblem assignment
     \begin{itemize}
-        \item REGTASK - register new task \verb!<task_id>!
-        \item STOPWIP - don't start: this task is work-in-progress \verb!<task_id>!
-        \item STOPLOW - don't start: lower priority \verb!<task_id>!
+        \item REGSUBPROB - register new subproblem \verb!<subproblem_id>!
+        \item DROPSUBPROB - stop working on this subproblem \verb!<subproblem_id>!
     \end{itemize}
     \item Result distribution
     \begin{itemize}
-        \item TASKRES - send task result \verb!<task_id, task_result>!
+        \item SUBPROBRES - send subproblem result \verb!<subproblem_id, subproblem_result>!
     \end{itemize}
     \item Confirmation
     \begin{itemize}
@@ -101,9 +100,9 @@
 \subsection{Rules}
 \# - broadcast
 \begin{itemize}
-    \item \#{}IMALIVE $\rightarrow$ NETTOPO (optional)
-    \item \#{}REGTASK $\rightarrow$ STOPWIP $\vert$ STOPLOW $\vert$ TASKRES
-    \item \#{}TASKRES $\rightarrow$ ACKNOWL
+    \item \#{}IMALIVE $\rightarrow$ NETTOPOLOGY (optional)
+    \item \#{}REGSUBPROB $\rightarrow$ DROPSUBPROB $\vert$ SUBPROBRES
+    \item \#{}SUBPROBRES $\rightarrow$ ACKNOWL
 \end{itemize}
 
 \subsection{Network scenarios}
@@ -118,7 +117,7 @@ Agent tries to join the network right after launching Codeine. \\\\
 \begin{enumerate}
     \item Agent broadcasts IMALIVE packet.
     \item Agent waits for ??? seconds for replies from every other agent already in the network.
-    \item Every other agent already in the network replies with NETTOPO packet.
+    \item Every other agent already in the network replies with NETTOPOLOGY packet.
     \item Agent registers the network. End of Scenario 1.
 \end{enumerate}
 \textbf{Scenario extensions:}
@@ -140,91 +139,86 @@ Agent periodically informs the network that he's still alive. \\\\
 
 \subsubsection{Scenario 3}
 \noindent\textbf{Story:} \\
-Agent wants to register a task \\\\
+Agent wants to register a subproblem \\\\
 \textbf{Prerequisites:}
 \begin{itemize}
     \item Agent is already in the network
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent broadcasts REGTASK packet.
+    \item Agent broadcasts REGSUBPROB packet.
     \item Agent starts calculations.
     \item No response from network. End of Scenario 3
 \end{enumerate}
 \textbf{Scenario extensions:}
 \begin{itemize}
-    \item[3a.] An agent replies with STOPWIP.
+    \item[3a.] An agent replies with DROPSUBPROB.
     \begin{itemize} 
     \item[3a.1.] Agent stops calculations.
-    \item[3a.2.] Agent sets that task's state to WIP.
-    \item[3a.3.] Agent chooses another task. Repeat from point 1. End of Scenario 3.  
+    \item[3a.2.] Agent sets that subproblem's state to WIP.
+    \item[3a.3.] Agent chooses another subproblem. Repeat from point 1. End of Scenario 3.  
     \end{itemize}
-    \item[3b.] An agent replies with STOPLOW.  
+    \item[3b.] An agent replies with SUBPROBRES. 
     \begin{itemize} 
     \item[3b.1.] Agent stops calculations.
-    \item[3b.2.] Agent chooses another task. Repeat from point 1. End of Scenario 3.  
-    \end{itemize}
-    \item[3c.] An agent replies with TASKRES. 
-    \begin{itemize} 
-    \item[3c.1.] Agent stops calculations.
-    \item[3c.2.] Agent registers received task result. 
-    \item[3c.3.] Agent chooses another task. Repeat from point 1. End of Scenario 3.  
+    \item[3b.2.] Agent registers received subproblem result. 
+    \item[3b.3.] Agent chooses another subproblem. Repeat from point 1. End of Scenario 3.  
     \end{itemize}
 \end{itemize}
 
 \subsubsection{Scenario 4}
 \noindent\textbf{Story:} \\
-Agent wants to broadcast task results. \\\\
+Agent wants to broadcast subproblem results. \\\\
 \textbf{Prerequisites:}
 \begin{itemize}
     \item Agent is already in the network
-    \item Agent has calculated a task and received a concrete result
+    \item Agent has calculated a subproblem and received a concrete result
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent broadcast TASKRES packet.
+    \item Agent broadcast SUBPROBRES packet.
     \item Agent waits for ??? seconds for replies.
     \item Every other agent registered in his net topology base replies with ACKNOWL. End of Scenario 4.
 \end{enumerate}
 \textbf{Scenario extensions:}
 \begin{itemize}
-    \item[3a.] If any agent hasn't replied with ACKNOWL, send packet TASKRES again to him. Repeat ??? times. 
+    \item[3a.] If any agent hasn't replied with ACKNOWL, send packet SUBPROBRES again to him. Repeat ??? times. 
     \begin{itemize}
-        \item[3a.1.] An agent hasn't replied after ??? sent TASKRES packets. Remove him from net topology base.
+        \item[3a.1.] An agent hasn't replied after ??? sent SUBPROBRES packets. Remove him from net topology base.
     \end{itemize} 
 \end{itemize}
 
 \subsubsection{Scenario 5}
 \noindent\textbf{Story:} \\
-Agent has received a TASKRES packet with task ID of a task he already has a result of. \\\\
+Agent has received a SUBPROBRES packet with subproblem ID of a subproblem he already has a result of. \\\\
 \textbf{Prerequisites:}
 \begin{itemize}
     \item Agent is already in the network
-    \item Agent already has results of at least one task
+    \item Agent already has results of at least one subproblem
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent received a TASKRES packet.
-    \item Agent tries to register the task result. Task with that ID already has a registered result.
-    \item Task result of received packet is ignored. 
+    \item Agent received a SUBPROBRES packet.
+    \item Agent tries to register the subproblem result. Subproblem with that ID already has a registered result.
+    \item Subproblem result of received packet is ignored. 
     \item Reply with ACKNOWL packet. End of Scenario 5.
 \end{enumerate}
 
 \subsubsection{Scenario 6}
 \noindent\textbf{Story:} \\
-Agent A tries to register a task with ID == X. Agent B replies with STOPWIP packet. Agent A sets task X's state to WIP. Agent B then disconnects. \\\\
+Agent A tries to register a subproblem with ID == X. Agent B replies with STOPWIP packet. Agent A sets subproblem X's state to WIP. Agent B then disconnects. \\\\
 \textbf{Prerequisites:}
 \begin{itemize}
     \item Agent is already in the network
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent A broadcasts REGTASK packet with task ID == X.
+    \item Agent A broadcasts REGSUBPROB packet with subproblem ID == X.
     \item Agent B replies with STOPWIP.
-    \item Agent A sets task X's state to WIP.
+    \item Agent A sets subproblem X's state to WIP.
     \item Agent B disconnects.
     \item Agent A doesn't receive IMALIVE packets from agent B for ??? minutes.
-    \item Agent A sets task X's state to unregistered/free/not-yet-completed. End of Scenario 6.
+    \item Agent A sets subproblem X's state to unregistered. End of Scenario 6.
 \end{enumerate}
 
 \section{Computational problem}
@@ -237,7 +231,7 @@ each consisting of $36^4$ hashes to calculate. They are divided based on the fir
 e.g. one subproblem is to find hashes of all 6 character long strings that start with "bg".
 Each agent can compute only one subproblem at a time.
 
-\section{Diagrams}
+\section{Design Patterns}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\linewidth]{diagrams/BrokerDiagram.eps}
@@ -249,5 +243,16 @@ Each agent can compute only one subproblem at a time.
 	\includegraphics[width=\linewidth]{diagrams/FactoryDiagram.eps}
 	\caption{Computational Problem Factory Diagram}
 \end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{diagrams/CommandDiagram.eps}
+	\caption{Command Diagram}
+\end{figure}
+
+\section{Technology}
+The application is going to be written using Python 3.7. \\
+As GUI does not need to be too complex, it is going to be created with Tkinter. \\
+Data between agents is going to be send in JSON format using UDP protocol. \\
 
 \end{document}
