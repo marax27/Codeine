@@ -231,11 +231,36 @@ each consisting of $36^4$ hashes to calculate. They are divided based on the fir
 e.g. one subproblem is to find hashes of all 6 character long strings that start with "bg".
 Each agent can compute only one subproblem at a time.
 
-\section{Design Patterns}
+\section{Project Structure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{diagrams/ProjectStructure.eps}
+	\caption{Project Structure Diagram}
+\end{figure}
+
+Packages:
+\begin{itemize}
+    \item \textbf{app:} top-level package. It is the main thread of an application, responsible for managing other threads. It manages subproblem execution and communicates with the Broker. 
+    The app package does not deal with network details directly: high-level commands are used instead of network packets.
+    \item \textbf{messaging:} contains a Broker definition, an abstraction layer between the app and the computer network. 
+    The Broker runs on a separate thread and listens to incoming packets, as well as sends commands received from the app package.
+    \item \textbf{computing:} contains implementation details of computational problem.
+    \item \textbf{shared:} contains utilities which are either used by all other packages, or are not unique to our project. 
+    For instance, NetworkConnection could be easily used in other projects that utilise communication over network.
+    \item \textbf{tests:} contains unit and integration tests that cover the rest of packages.
+\end{itemize}
+
+\section{Diagrams}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\linewidth]{diagrams/BrokerDiagram.eps}
 	\caption{MessageBroker Class Diagram}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{diagrams/AppBrokerSequenceDiagram.eps}
+	\caption{App-broker Sequence Diagram}
 \end{figure}
 
 \begin{figure}[H]
@@ -249,6 +274,32 @@ Each agent can compute only one subproblem at a time.
 	\includegraphics[width=\linewidth]{diagrams/CommandDiagram.eps}
 	\caption{Command Diagram}
 \end{figure}
+
+\newpage
+
+\section{Security}
+The possibilities to disrupt a computational network are plentiful:
+\begin{itemize}
+    \item “Flood” the network with fake result packets
+    \item Deny all “register subproblem” requests
+    \item Solve subproblems using a “malformed” state (e.g. replacing an original texture while rendering an image)
+    \begin{itemize}
+        \item Exchanging a state hash/control sum would help detect accidental mistakes. Malicious changes could be caught by solving a certain subproblem 
+        several times (which still wouldn’t help if an attacker had control over nearly 50% of the network)
+    \end{itemize}
+    \item Disruption of data stored locally, in a file
+    \begin{itemize}
+        \item Little can we do to protect data against someone with a physical access to a machine
+    \end{itemize}
+    \item One computational network per actual computer network
+    \begin{itemize}
+        \item Introducing a kind of a session key might resolve the issue
+    \end{itemize}
+    \item Communication between agents is unencrypted
+    \begin{itemize}
+        \item Encryption itself will be easy to implement, if needed. It may be based on the aforementioned session key.
+    \end{itemize}
+\end{itemize}
 
 \section{Technology}
 \begin{itemize}
