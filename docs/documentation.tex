@@ -251,8 +251,11 @@ Each agent can compute only one subproblem at a time.
 \end{figure}
 
 \section{Technology}
-The application is going to be written using Python 3.7. \\
-As GUI does not need to be too complex, it is going to be created with Tkinter. \\
-Data between agents is going to be send in JSON format using UDP protocol. \\
+\begin{itemize}
+    \item \textbf{Python 3.7:} Python version 3.7. introduced @dataclass, which makes it easier to work with data structures.
+    It allows creating immutable data structures.
+    \item \textbf{Network Communication:} transmission of data in JSON format, using UDP protocol.
+    \item \textbf{Tkinter:} Python library Tkinter will be used to create GUI.
+\end{itemize}
 
 \end{document}
