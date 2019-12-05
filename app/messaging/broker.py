@@ -42,24 +42,26 @@ class Broker(StoppableThread):
 
     def _handle_incoming_packet(self):
         packet = self._connection.receive()
-        if packet is not None:
-            try:
-                command = self._to_command(packet.data)
-            except Exception:
-                return
+        if packet is None:
+            pass
 
-            sender_address = packet.address
-            self._topology.add_or_update(sender_address)
+        try:
+            command = self._to_command(packet.data)
+        except Exception:
+            return
 
-            if isinstance(command, NetworkCommand):
-                command: NetworkCommand
-                responses = list(command.invoke(self._topology))
-                if responses:
-                    response_destination = command.response_destination
-                    sender_id = hash(sender_address)
-                    ident = response_destination.get_recipient_id(sender_id)
-                    for response in responses:
-                        self.send_to(response, ident)
+        sender_address = packet.address
+        self._topology.add_or_update(sender_address)
+
+        if isinstance(command, NetworkCommand):
+            command: NetworkCommand
+            responses = list(command.invoke(self._topology))
+            if responses:
+                response_destination = command.response_destination
+                sender_id = hash(sender_address)
+                ident = response_destination.get_recipient_id(sender_id)
+                for response in responses:
+                    self.send_to(response, ident)
 
     def _handle_outgoing_commands(self):
         while not self._send_queue.empty():

@@ -24,16 +24,6 @@ class LoggingBroker(Broker):
             self._logger.exception(f'Packet -> Command mapping failed: {exc}')
             raise
 
-    def _handle_imalive(self, sender_address: ConnectionSettings):
-        self._logger.info(f'IMALIVE notification from {sender_address}')
-        super()._handle_imalive(sender_address)
-        self._logger.info(f'Agents: {list(self._topology.get_addresses())}')
-
-    def _handle_nettopo(self, command):
-        self._logger.info(f'Network topology update: {command.agents}')
-        super()._handle_nettopo(command)
-        self._logger.info(f'Agents: {list(self._topology.get_addresses())}')
-
     def _send(self, recipients, command):
         count = len(set(recipients))
         identifier = command.get_identifier()
