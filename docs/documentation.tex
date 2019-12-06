@@ -36,7 +36,7 @@
     Faculty of Electrical Engineering, Automatics, Computer Science and Engineering in Biomedicine}
 \author{Kacper Tonia\and
         Przemysław Nocoń\and
-        Kuba Komnata\and
+        Jakub Komnata\and
         Sławomir Kalandyk}
 \date{}
 
@@ -246,7 +246,7 @@ Packages:
     The Broker runs on a separate thread and listens to incoming packets, as well as sends commands received from the app package.
     \item \textbf{computing:} contains implementation details of computational problem.
     \item \textbf{shared:} contains utilities which are either used by all other packages, or are not unique to our project. 
-    For instance, NetworkConnection could be easily used in other projects that utilise communication over network.
+    For instance, NetworkConnection (a socket wrapper class) could be easily used in other projects that utilise communication over network.
     \item \textbf{tests:} contains unit and integration tests that cover the rest of packages.
 \end{itemize}
 
@@ -254,19 +254,19 @@ Packages:
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\linewidth]{diagrams/BrokerDiagram.eps}
-	\caption{MessageBroker Class Diagram}
+	\caption{Broker Class Diagram}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\linewidth]{diagrams/AppBrokerSequenceDiagram.eps}
-	\caption{App-broker Sequence Diagram}
+	\caption{App-Broker Sequence Diagram}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\linewidth]{diagrams/FactoryDiagram.eps}
-	\caption{Computational Problem Factory Diagram}
+	\caption{Computational Problem Abstract Factory Diagram}
 \end{figure}
 
 \begin{figure}[H]
