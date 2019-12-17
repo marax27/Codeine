@@ -1,4 +1,5 @@
 from time import sleep
+from queue import Queue, Empty
 from typing import Optional
 import pytest
 from app.shared.networking import Packet, NetworkIO
@@ -20,17 +21,18 @@ class ConnectionSettingsFactory:
 
 class NetworkIOMock(NetworkIO):
     def __init__(self):
-        self.sent_by_broker = []
-        self.to_receive = []
+        self.outgoing = Queue()
+        self.incoming = Queue()
 
     def send(self, packet: Packet):
-        self.sent_by_broker.append(packet)
+        self.outgoing.put(packet)
 
     def receive(self) -> Optional[Packet]:
-        if self.to_receive:
-            element = self.to_receive[-1]
-            del self.to_receive[-1]
-            return element
+        if not self.incoming.empty():
+            try:
+                return self.incoming.get_nowait()
+            except Empty:
+                pass
         return None
 
     def get_address(self) -> ConnectionSettings:
@@ -69,11 +71,11 @@ def test_imalive_receiveImalive_sendNettopo(
         ):
     given_address = ConnectionSettingsFactory.sample()
     given_packet = get_imalive_packet(given_address)
-    connection.to_receive = [given_packet]
+    connection.incoming.put(given_packet)
 
     wait_for_response()
 
-    sent_packet: Packet = connection.sent_by_broker[0]
+    sent_packet: Packet = connection.outgoing.get_nowait()
     command = mapper.map_from_bytes(sent_packet.data)
     assert sent_packet.address == given_address
     assert isinstance(command, NetTopologyCommand)
@@ -89,12 +91,12 @@ def test_nettopo_sendBrokerItsAddress_brokerDoesntRegisterTheAddress(
     command_as_bytes = mapper.map_to_bytes(given_command)
     given_packet = Packet(command_as_bytes, sender_address)
 
-    connection.to_receive.append(given_packet)
+    connection.incoming.put(given_packet)
     wait_for_response()
 
-    connection.to_receive.append(get_imalive_packet(sender_address))
+    connection.incoming.put(get_imalive_packet(sender_address))
     wait_for_response()
 
-    sent_packet: Packet = connection.sent_by_broker[0]
+    sent_packet: Packet = connection.outgoing.get_nowait()
     command: NetTopologyCommand = mapper.map_from_bytes(sent_packet.data)
     assert given_address not in set(command.agents)
