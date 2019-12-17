@@ -1,4 +1,5 @@
 import socket
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional
 from dataclasses_json import dataclass_json
@@ -35,7 +36,21 @@ class ReadError(Exception):
     pass
 
 
-class NetworkConnection:
+class NetworkIO(ABC):
+    @abstractmethod
+    def send(self, packet: Packet):
+        pass
+
+    @abstractmethod
+    def receive(self) -> Optional[Packet]:
+        pass
+
+    @abstractmethod
+    def get_address(self) -> ConnectionSettings:
+        pass
+
+
+class NetworkConnection(NetworkIO):
     '''Wrapper for low-level socket operations.'''
 
     def __init__(self, connection_settings: ConnectionSettings):

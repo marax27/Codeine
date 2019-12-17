@@ -2,14 +2,14 @@ from time import sleep
 from queue import Queue
 from typing import Iterable, Optional
 from app.shared.multithreading import StoppableThread
-from app.shared.networking import Packet, ConnectionSettings, NetworkConnection
+from app.shared.networking import Packet, ConnectionSettings, NetworkIO
 from .commands import CommandMapper, Command
 from .topology import Topology, NetworkCommand, ImAliveCommand, NetTopologyCommand
 from .command_handler import CommandHandler, CommandNotRegisteredException, Payload
 
 
 class Broker(StoppableThread):
-    def __init__(self, connection: NetworkConnection):
+    def __init__(self, connection: NetworkIO):
         super().__init__()
         self._connection = connection
         self._topology = Topology().with_forbidden(connection.get_address())

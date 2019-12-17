@@ -1,7 +1,7 @@
 from time import sleep
 from typing import Optional
 import pytest
-from app.shared.networking import Packet
+from app.shared.networking import Packet, NetworkIO
 from app.messaging.commands import CommandMapper
 from app.messaging.topology import ImAliveCommand, NetTopologyCommand
 from app.messaging.broker import Broker
@@ -18,7 +18,7 @@ class ConnectionSettingsFactory:
         return ConnectionSettings('1.2.3.5', 6789)
 
 
-class NetworkConnectionMock:
+class NetworkIOMock(NetworkIO):
     def __init__(self):
         self.sent_by_broker = []
         self.to_receive = []
@@ -47,7 +47,7 @@ def get_imalive_packet(address: ConnectionSettings) -> Packet:
 
 @pytest.fixture()
 def connection():
-    result = NetworkConnectionMock()
+    result = NetworkIOMock()
     broker = Broker(result)
     broker.start()
     yield result
@@ -64,7 +64,7 @@ def mapper():
 
 
 def test_imalive_receiveImalive_sendNettopo(
-        connection: NetworkConnectionMock,
+        connection: NetworkIOMock,
         mapper: CommandMapper
         ):
     given_address = ConnectionSettingsFactory.sample()
@@ -80,7 +80,7 @@ def test_imalive_receiveImalive_sendNettopo(
 
 
 def test_nettopo_sendBrokerItsAddress_brokerDoesntRegisterTheAddress(
-        connection: NetworkConnectionMock,
+        connection: NetworkIOMock,
         mapper: CommandMapper
         ):
     given_address = connection.get_address()

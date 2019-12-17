@@ -1,11 +1,11 @@
 from logging import Logger
-from app.shared.networking import ConnectionSettings, NetworkConnection
+from app.shared.networking import ConnectionSettings, NetworkIO
 from .commands import Command
 from .broker import Broker
 
 
 class LoggingBroker(Broker):
-    def __init__(self, connection: NetworkConnection, logger: Logger):
+    def __init__(self, connection: NetworkIO, logger: Logger):
         super().__init__(connection)
         self._logger = logger
 
