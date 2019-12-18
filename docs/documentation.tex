@@ -91,10 +91,6 @@
     \begin{itemize}
         \item SUBPROBRES - send subproblem result \verb!<subproblem_id, subproblem_result>!
     \end{itemize}
-    \item Confirmation
-    \begin{itemize}
-        \item ACKNOWL - acknowledge \verb!<previous_package_control_sum>!
-    \end{itemize}
 \end{itemize}
 
 \subsection{Rules}
@@ -102,7 +98,7 @@
 \begin{itemize}
     \item \#{}IMALIVE $\rightarrow$ NETTOPOLOGY (optional)
     \item \#{}REGSUBPROB $\rightarrow$ DROPSUBPROB $\vert$ SUBPROBRES
-    \item \#{}SUBPROBRES $\rightarrow$ ACKNOWL
+    \item \#{}SUBPROBRES $\rightarrow$ $\varnothing$
 \end{itemize}
 
 \subsection{Network scenarios}
@@ -116,13 +112,13 @@ Agent tries to join the network right after launching Codeine. \\\\
 \textbf{Scenario:}
 \begin{enumerate}
     \item Agent broadcasts IMALIVE packet.
-    \item Agent waits for ??? seconds for replies from every other agent already in the network.
+    \item Agent starts calculations.
     \item Every other agent already in the network replies with NETTOPOLOGY packet.
     \item Agent registers the network. End of Scenario 1.
 \end{enumerate}
 \textbf{Scenario extensions:}
 \begin{itemize}
-    \item[3a.] There is no response from the network (proceed to calculations). End of Scenario 1.
+    \item[3a.] There is no response from the network. End of Scenario 1.
 \end{itemize}
 
 \subsubsection{Scenario 2}
@@ -176,17 +172,8 @@ Agent wants to broadcast subproblem results. \\\\
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent broadcast SUBPROBRES packet.
-    \item Agent waits for ??? seconds for replies.
-    \item Every other agent registered in his net topology base replies with ACKNOWL. End of Scenario 4.
+    \item Agent broadcast SUBPROBRES packet. End of Scenario 4.
 \end{enumerate}
-\textbf{Scenario extensions:}
-\begin{itemize}
-    \item[3a.] If any agent hasn't replied with ACKNOWL, send packet SUBPROBRES again to him. Repeat ??? times. 
-    \begin{itemize}
-        \item[3a.1.] An agent hasn't replied after ??? sent SUBPROBRES packets. Remove him from net topology base.
-    \end{itemize} 
-\end{itemize}
 
 \subsubsection{Scenario 5}
 \noindent\textbf{Story:} \\
@@ -200,8 +187,7 @@ Agent has received a SUBPROBRES packet with subproblem ID of a subproblem he alr
 \begin{enumerate}
     \item Agent received a SUBPROBRES packet.
     \item Agent tries to register the subproblem result. Subproblem with that ID already has a registered result.
-    \item Subproblem result of received packet is ignored. 
-    \item Reply with ACKNOWL packet. End of Scenario 5.
+    \item Subproblem result of received packet is ignored. End of Scenario 5.
 \end{enumerate}
 
 \subsubsection{Scenario 6}
