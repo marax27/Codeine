@@ -14,5 +14,5 @@
 |iamalive|
 |register|
 |drop    |
-|solve   |
+|solution|
 +--------+
