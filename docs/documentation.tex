@@ -49,7 +49,7 @@
 \begin{itemize}
     \item Agent - single application instance, is able to compute one subproblem at a time
     \item Computational problem - problem solvable with Codeine. It should be divisible into a finite amount of subproblems which can be solved independent of each other
-    \item Computational network (usually referred to as "network") - a network of agents communicating with each other, who together solve one computational problem
+    \item Computational network - a network of agents communicating with each other, who together solve one computational problem
     \item Subproblem - a single subproblem of the computational problem
 \end{itemize}
 
@@ -59,9 +59,9 @@
     \item We should assume that about 5 agents at once can work on our computational problem
     \item Every agent should have exactly the same application
     \item After application launch, agent should automatically attempt to discover other agents in the network
-    \item The computational problem itself doesn't matter, it should only allow for long enough computing time to let us see the network working as intended
+    \item The computational problem itself doesn't matter, it should only allow for long enough computing time to let us see the computational network working as intended
     \item Subproblem assignment should be decentralized
-    \item Agents should be immune to other agents disconnecting from the network, there should be no side effects
+    \item Agents should be immune to other agents disconnecting from the computational network, there should be no side effects
     \item Results should be visualized, accessible (in the best case in real time)
 \end{itemize}
 
@@ -80,7 +80,7 @@
     \item Topology discovery, registering agents
     \begin{itemize}
         \item IMALIVE - send empty packet informing that agent is in the network \verb!<>!
-        \item NETTOPOLOGY - send network topology \verb!<agent[]>!
+        \item NETTOPOLOGY - send computational network topology \verb!<agent[]>!
     \end{itemize}
     \item Subproblem assignment
     \begin{itemize}
@@ -94,9 +94,12 @@
 \end{itemize}
 
 \subsection{Rules}
-\# - broadcast
+Unless stated otherwise, broadcast concerns broadcasting messages to all agents registered in an agent's network topology (computational network broadcast). \\\\
+\# - computational network broadcast\\
+* - LAN broadcast
 \begin{itemize}
-    \item \#{}IMALIVE $\rightarrow$ NETTOPOLOGY (optional)
+    \item *IMALIVE $\rightarrow$ NETTOPOLOGY
+    \item \#{}IMALIVE $\rightarrow$ $\varnothing$
     \item \#{}REGSUBPROB $\rightarrow$ DROPSUBPROB $\vert$ SUBPROBRES
     \item \#{}SUBPROBRES $\rightarrow$ $\varnothing$
 \end{itemize}
@@ -104,17 +107,17 @@
 \subsection{Network scenarios}
 \subsubsection{Scenario 1}
 \noindent\textbf{Story:} \\
-Agent tries to join the network right after launching Codeine. \\\\
+Agent tries to join the computational network right after launching Codeine. \\\\
 \textbf{Prerequisites:}
 \begin{itemize}
     \item None
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent broadcasts IMALIVE packet.
+    \item Agent broadcasts IMALIVE packet to all present in LAN.
     \item Agent starts calculations.
-    \item Every other agent already in the network replies with NETTOPOLOGY packet.
-    \item Agent registers the network. End of Scenario 1.
+    \item Every other agent already in the computational network replies with NETTOPOLOGY packet.
+    \item Agent registers the computational network. End of Scenario 1.
 \end{enumerate}
 \textbf{Scenario extensions:}
 \begin{itemize}
@@ -123,10 +126,10 @@ Agent tries to join the network right after launching Codeine. \\\\
 
 \subsubsection{Scenario 2}
 \noindent\textbf{Story:} \\
-Agent periodically informs the network that he's still alive. \\\\
+Agent periodically informs the computational network that he's still alive. \\\\
 \textbf{Prerequisites:}
 \begin{itemize}
-    \item Agent is already in the network
+    \item Agent is already in the computational network
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
@@ -138,13 +141,13 @@ Agent periodically informs the network that he's still alive. \\\\
 Agent wants to register a subproblem \\\\
 \textbf{Prerequisites:}
 \begin{itemize}
-    \item Agent is already in the network
+    \item Agent is already in the computational network
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
     \item Agent broadcasts REGSUBPROB packet.
     \item Agent starts calculations.
-    \item No response from network. End of Scenario 3
+    \item No response from computational network. End of Scenario 3
 \end{enumerate}
 \textbf{Scenario extensions:}
 \begin{itemize}
@@ -167,7 +170,7 @@ Agent wants to register a subproblem \\\\
 Agent wants to broadcast subproblem results. \\\\
 \textbf{Prerequisites:}
 \begin{itemize}
-    \item Agent is already in the network
+    \item Agent is already in the computational network
     \item Agent has calculated a subproblem and received a concrete result
 \end{itemize}
 \textbf{Scenario:}
@@ -180,7 +183,7 @@ Agent wants to broadcast subproblem results. \\\\
 Agent has received a SUBPROBRES packet with subproblem ID of a subproblem he already has a result of. \\\\
 \textbf{Prerequisites:}
 \begin{itemize}
-    \item Agent is already in the network
+    \item Agent is already in the computational network
     \item Agent already has results of at least one subproblem
 \end{itemize}
 \textbf{Scenario:}
@@ -195,7 +198,7 @@ Agent has received a SUBPROBRES packet with subproblem ID of a subproblem he alr
 Agent A tries to register a subproblem with ID == X. Agent B replies with STOPWIP packet. Agent A sets subproblem X's state to WIP. Agent B then disconnects. \\\\
 \textbf{Prerequisites:}
 \begin{itemize}
-    \item Agent is already in the network
+    \item Agent is already in the computational network
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
