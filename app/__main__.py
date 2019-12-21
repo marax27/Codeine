@@ -4,6 +4,7 @@ from .shared.configuration import Configuration
 from .shared.logs import get_logger, initialize
 from .messaging.broker import Broker
 from .messaging.logging_broker import LoggingBroker
+from .computing import facade
 
 
 def main():
@@ -16,8 +17,35 @@ def main():
     broker = create_broker(connection_settings)
     broker.start()
 
+
     try:
+        challenge = facade.get_computational_problem()
+        task_pool = challenge.create_task_pool()
+        state = challenge.create_state()
+
+        subtask_result = None
+        subtask_in_progress = False
+        
         while True:
+            if subtask_result is not None:
+                #placeholder for victory condition
+                logger.info(subtask_result.result)
+                break
+            if not subtask_in_progress:
+                if task_pool.not_started_pool:
+                    subtask_id = task_pool.pop_identifier()
+                    task_pool.register(subtask_id)
+                    subtask = challenge.create_task(subtask_id, state)
+                    subtask.start()
+                    subtask_in_progress = True
+                elif not task_pool.not_started_pool:
+                    #placeholder running out of subtasks
+                    break
+            if not subtask.is_alive():
+                subtask_in_progress = False
+                subtask_result = subtask.result
+                task_pool.complete(subtask_id, subtask_result)
+
             for command in broker.get_commands():
                 logger.info(f'Received command: {command}')
             if not broker.is_alive():
@@ -30,7 +58,9 @@ def main():
 
     logger.info('Gracefully stopping Codeine...')
     broker.stop()
+    subtask.stop()
     broker.join()
+    subtask.join()
     logger.info('Gracefully stopped.')
 
 
