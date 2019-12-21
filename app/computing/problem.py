@@ -18,18 +18,20 @@ class TaskIdentifier(base.TaskIdentifier):
 
 @dataclass(frozen=True)
 class TaskResult(base.TaskResult):
-    result: Optional[str]
+    result: Optional[str] = None
 
 
 class TaskPool(base.TaskPool):
     def _create_initial_pool(self) -> Set[TaskResult]:
-        prefixes = itertools.product(string.ascii_lowercase + string.digits, repeat=2)
+        prefixes = itertools.product(string.ascii_lowercase + string.digits,
+                                     repeat=2)
         return set(map(TaskIdentifier, map(''.join, prefixes)))
 
 
 class Task(base.Task):
     def run(self):
-        for suffix in map(''.join, itertools.product(string.ascii_lowercase + string.digits, repeat=4)):
+        for suffix in map(''.join, itertools.product(string.ascii_lowercase +
+                          string.digits, repeat=4)):
             if not self.requested_stop():
                 word = self.identifier.value + suffix
                 word_byte = word.encode('utf-8')
@@ -37,10 +39,10 @@ class Task(base.Task):
                 hs.update(word_byte)
                 hs = hs.hexdigest()
                 if (hs == self.state.password):
-                    self.result = TaskResult(word)
+                    self.result .result = word
                     break
-        
-        
+
+
 class ComputationalProblem(base.ComputationalProblem):
     def create_task_pool(self) -> TaskPool:
         return TaskPool()

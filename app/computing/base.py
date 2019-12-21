@@ -49,7 +49,7 @@ class Task(StoppableThread):
         super().__init__()
         self.identifier = identifier
         self.state = state
-        self.result: Optional[TaskResult] = None
+        self.result = TaskResult()
 
     @abstractmethod
     def run(self):
