@@ -18,20 +18,20 @@ class TaskIdentifier(base.TaskIdentifier):
 
 @dataclass(frozen=True)
 class TaskResult(base.TaskResult):
-    result: Optional[str] = None
+    result: Optional[str]
 
 
 class TaskPool(base.TaskPool):
     def _create_initial_pool(self) -> Set[TaskResult]:
-        prefixes = itertools.product(string.ascii_lowercase + string.digits,
+        prefixes = itertools.product(string.ascii_lowercase, 
                                      repeat=2)
         return set(map(TaskIdentifier, map(''.join, prefixes)))
 
 
 class Task(base.Task):
     def run(self):
-        for suffix in map(''.join, itertools.product(string.ascii_lowercase +
-                          string.digits, repeat=4)):
+        for suffix in map(''.join, itertools.product(string.ascii_lowercase,
+                          repeat=4)):
             if not self.requested_stop():
                 word = self.identifier.value + suffix
                 word_byte = word.encode('utf-8')
@@ -39,7 +39,7 @@ class Task(base.Task):
                 hs.update(word_byte)
                 hs = hs.hexdigest()
                 if (hs == self.state.password):
-                    self.result .result = word
+                    self.result = TaskResult(word)
                     break
 
 
@@ -48,7 +48,8 @@ class ComputationalProblem(base.ComputationalProblem):
         return TaskPool()
 
     def create_state(self) -> State:
-        return State("8c8b31cb137cfa565cc6057b4c4e0e9f04305ac2")
+        #return State("8c8b31cb137cfa565cc6057b4c4e0e9f04305ac2") #for password "kacpi4"
+        return State("aff975c55e20db44e643411216161ec943cbb0c3") #for password "kacper"
 
     def create_task(self, identifier: TaskIdentifier, state: State) -> Task:
         return Task(identifier, state)

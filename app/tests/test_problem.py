@@ -29,11 +29,11 @@ class ProblemTaskIdentifier(TaskIdentifier):
 
 def test_task_computing_findingAnswerShort():
     answer_id = ProblemTaskIdentifier("ka")
-    state = State("8c8b31cb137cfa565cc6057b4c4e0e9f04305ac2")
+    state = State("aff975c55e20db44e643411216161ec943cbb0c3")
     task = Task(answer_id, state)
     task.run()
 
-    assert task.result.result == 'kacpi4'
+    assert task.result.result == 'kacper'
 
 
 
