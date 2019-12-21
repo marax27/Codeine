@@ -24,27 +24,28 @@ def main():
         state = challenge.create_state()
 
         subtask_result = None
-        subtask_id = task_pool.pop_identifier()
-        task_pool.register(subtask_id)
-        subtask = challenge.create_task(subtask_id, state)
-        subtask.start()
+        subtask_in_progress = False
         
         while True:
-            if not subtask.is_alive():
-                subtask_result = subtask.result
-                task_pool.complete(subtask_id, subtask_result)
-                if subtask_result is not None:
-                    #placeholder for victory condition
-                    logger.info(subtask_result.result)
-                    break
+            if subtask_result is not None:
+                #placeholder for victory condition
+                logger.info(subtask_result.result)
+                break
+            if not subtask_in_progress:
                 if task_pool.not_started_pool:
                     subtask_id = task_pool.pop_identifier()
                     task_pool.register(subtask_id)
                     subtask = challenge.create_task(subtask_id, state)
                     subtask.start()
+                    subtask_in_progress = True
                 elif not task_pool.not_started_pool:
                     #placeholder running out of subtasks
                     break
+            if not subtask.is_alive():
+                subtask_in_progress = False
+                subtask_result = subtask.result
+                task_pool.complete(subtask_id, subtask_result)
+
             for command in broker.get_commands():
                 logger.info(f'Received command: {command}')
             if not broker.is_alive():
