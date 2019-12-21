@@ -24,14 +24,14 @@ class TaskResult(base.TaskResult):
 class TaskPool(base.TaskPool):
     def _create_initial_pool(self) -> Set[TaskResult]:
         prefixes = itertools.product(string.ascii_lowercase, 
-                                     repeat=2)
+                                     repeat=1)
         return set(map(TaskIdentifier, map(''.join, prefixes)))
 
 
 class Task(base.Task):
     def run(self):
         for suffix in map(''.join, itertools.product(string.ascii_lowercase,
-                          repeat=4)):
+                          repeat=5)):
             if not self.requested_stop():
                 word = self.identifier.value + suffix
                 word_byte = word.encode('utf-8')

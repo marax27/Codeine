@@ -22,19 +22,28 @@ def main():
         challenge = facade.get_computational_problem()
         task_pool = challenge.create_task_pool()
         answer = challenge.create_state()
- 
+
+        subtask_result = None
+        subtask_id = task_pool.pop_identifier()
+        task_pool.register(subtask_id)
+        subtask = challenge.create_task(subtask_id, answer)
+        subtask.start()
+        
         while True:
-            if task_pool.not_started_pool:
-                subtask_id = task_pool.pop_identifier()
-                task_pool.register(subtask_id)
-                subtask = challenge.create_task(subtask_id, answer)
-                subtask.run()
+            if not subtask.is_alive():
                 subtask_result = subtask.result
                 task_pool.complete(subtask_id, subtask_result)
-            if subtask_result is not None:
-                #placeholder for victory condition
-                print (subtask_result.result)
-                break
+                if subtask_result is not None:
+                    #placeholder for victory condition
+                    break
+                if task_pool.not_started_pool:
+                    subtask_id = task_pool.pop_identifier()
+                    task_pool.register(subtask_id)
+                    subtask = challenge.create_task(subtask_id, answer)
+                    subtask.start()
+                if not task_pool.not_started_pool:
+                    #placeholder running out of subtasks
+                    break
             for command in broker.get_commands():
                 logger.info(f'Received command: {command}')
             if not broker.is_alive():

@@ -28,7 +28,7 @@ class ProblemTaskIdentifier(TaskIdentifier):
 
 
 def test_task_computing_findingAnswerShort():
-    answer_id = ProblemTaskIdentifier("ka")
+    answer_id = ProblemTaskIdentifier("k")
     state = State("aff975c55e20db44e643411216161ec943cbb0c3")
     task = Task(answer_id, state)
     task.run()
