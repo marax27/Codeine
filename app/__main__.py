@@ -21,12 +21,12 @@ def main():
     try:
         challenge = facade.get_computational_problem()
         task_pool = challenge.create_task_pool()
-        answer = challenge.create_state()
+        state = challenge.create_state()
 
         subtask_result = None
         subtask_id = task_pool.pop_identifier()
         task_pool.register(subtask_id)
-        subtask = challenge.create_task(subtask_id, answer)
+        subtask = challenge.create_task(subtask_id, state)
         subtask.start()
         
         while True:
@@ -35,13 +35,14 @@ def main():
                 task_pool.complete(subtask_id, subtask_result)
                 if subtask_result is not None:
                     #placeholder for victory condition
+                    logger.info(subtask_result.result)
                     break
                 if task_pool.not_started_pool:
                     subtask_id = task_pool.pop_identifier()
                     task_pool.register(subtask_id)
-                    subtask = challenge.create_task(subtask_id, answer)
+                    subtask = challenge.create_task(subtask_id, state)
                     subtask.start()
-                if not task_pool.not_started_pool:
+                elif not task_pool.not_started_pool:
                     #placeholder running out of subtasks
                     break
             for command in broker.get_commands():
