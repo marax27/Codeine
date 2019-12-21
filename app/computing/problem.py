@@ -32,15 +32,16 @@ class Task(base.Task):
     def run(self):
         for suffix in map(''.join, itertools.product(string.ascii_lowercase,
                           repeat=5)):
-            if not self.requested_stop():
-                word = self.identifier.value + suffix
-                word_byte = word.encode('utf-8')
-                hs = hashlib.sha1()
-                hs.update(word_byte)
-                hs = hs.hexdigest()
-                if (hs == self.state.password):
-                    self.result = TaskResult(word)
-                    break
+            if self.requested_stop():
+                break
+            word = self.identifier.value + suffix
+            word_byte = word.encode('utf-8')
+            hs = hashlib.sha1()
+            hs.update(word_byte)
+            hs = hs.hexdigest()
+            if (hs == self.state.password):
+                self.result = TaskResult(word)
+                break
 
 
 class ComputationalProblem(base.ComputationalProblem):
