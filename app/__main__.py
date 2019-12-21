@@ -58,7 +58,9 @@ def main():
 
     logger.info('Gracefully stopping Codeine...')
     broker.stop()
+    subtask.stop()
     broker.join()
+    subtask.join()
     logger.info('Gracefully stopped.')
 
 
