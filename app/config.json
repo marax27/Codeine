@@ -1,4 +1,7 @@
 {
+    "Application": {
+        "active_mode": true
+    },
     "Connection": {
         "address": "0.0.0.0",
         "port": 40000

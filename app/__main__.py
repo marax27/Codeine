@@ -5,15 +5,19 @@ from .shared.logs import get_logger, initialize
 from .messaging.broker import Broker
 from .messaging.logging_broker import LoggingBroker
 from .computing import facade
+from .app import ApplicationSettings
 
 
 def main():
     config = Configuration(__package__) \
         .add_json_file('config.json')
     connection_settings = config.get('Connection').bind_as(ConnectionSettings)
+    app_settings = config.get('Application').bind_as(ApplicationSettings)
     logger = get_logger(__package__)
 
-    logger.info('Codeine started.')
+    mode_name = 'active' if app_settings.active_mode else 'passive'
+    logger.info(f'Codeine started in {mode_name} mode.')
+
     broker = create_broker(connection_settings)
     broker.start()
 
