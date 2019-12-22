@@ -12,23 +12,23 @@ class State(base.State):
 
 
 @dataclass(frozen=True)
-class TaskIdentifier(base.TaskIdentifier):
+class SubproblemId(base.SubproblemId):
     value: str
 
 
 @dataclass(frozen=True)
-class TaskResult(base.TaskResult):
+class SubproblemResult(base.SubproblemResult):
     result: Optional[str]
 
 
-class TaskPool(base.TaskPool):
-    def _create_initial_pool(self) -> Set[TaskResult]:
-        prefixes = itertools.product(string.ascii_lowercase, 
+class SubproblemPool(base.SubproblemPool):
+    def _create_initial_pool(self) -> Set[SubproblemResult]:
+        prefixes = itertools.product(string.ascii_lowercase,
                                      repeat=1)
-        return set(map(TaskIdentifier, map(''.join, prefixes)))
+        return set(map(SubproblemId, map(''.join, prefixes)))
 
 
-class Task(base.Task):
+class Subproblem(base.Subproblem):
     def run(self):
         for suffix in map(''.join, itertools.product(string.ascii_lowercase,
                           repeat=5)):
@@ -40,17 +40,17 @@ class Task(base.Task):
             hs.update(word_byte)
             hs = hs.hexdigest()
             if (hs == self.state.password):
-                self.result = TaskResult(word)
+                self.result = SubproblemResult(word)
                 break
 
 
 class ComputationalProblem(base.ComputationalProblem):
-    def create_task_pool(self) -> TaskPool:
-        return TaskPool()
+    def create_subproblem_pool(self) -> SubproblemPool:
+        return SubproblemPool()
 
     def create_state(self) -> State:
         #return State("8c8b31cb137cfa565cc6057b4c4e0e9f04305ac2") #for password "kacpi4"
         return State("aff975c55e20db44e643411216161ec943cbb0c3") #for password "kacper"
 
-    def create_task(self, identifier: TaskIdentifier, state: State) -> Task:
-        return Task(identifier, state)
+    def create_subproblem(self, identifier: SubproblemId, state: State) -> Subproblem:
+        return Subproblem(identifier, state)

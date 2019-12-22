@@ -1,6 +1,5 @@
 import random
 from abc import ABC, abstractmethod
-from threading import Thread
 from typing import Optional, Set
 from app.shared.multithreading import StoppableThread
 
@@ -9,47 +8,47 @@ class State(ABC):
     pass
 
 
-class TaskIdentifier(ABC):
+class SubproblemId(ABC):
     pass
 
 
-class TaskResult(ABC):
+class SubproblemResult(ABC):
     pass
 
 
-class TaskPool(ABC):
+class SubproblemPool(ABC):
     def __init__(self):
         self.not_started_pool = self._create_initial_pool()
         self.in_progress_pool = set()
         self.results = dict()
 
     @abstractmethod
-    def _create_initial_pool(self) -> Set[TaskIdentifier]:
+    def _create_initial_pool(self) -> Set[SubproblemId]:
         pass
 
-    def pop_identifier(self) -> TaskIdentifier:
+    def pop_identifier(self) -> SubproblemId:
         return random.choice(tuple(self.not_started_pool))
 
-    def register(self, identifier: TaskIdentifier):
+    def register(self, identifier: SubproblemId):
         self.not_started_pool.remove(identifier)
         self.in_progress_pool.add(identifier)
 
-    def revert_in_progress(self, identifier: TaskIdentifier):
+    def revert_in_progress(self, identifier: SubproblemId):
         self.in_progress_pool.remove(identifier)
         self.not_started_pool.add(identifier)
 
-    def complete(self, identifier: TaskIdentifier, result: TaskResult):
+    def complete(self, identifier: SubproblemId, result: SubproblemResult):
         self.in_progress_pool.remove(identifier)
         if identifier not in self.results:
             self.results[identifier] = result
 
 
-class Task(StoppableThread):
-    def __init__(self, identifier: TaskIdentifier, state: State):
+class Subproblem(StoppableThread):
+    def __init__(self, identifier: SubproblemId, state: State):
         super().__init__()
         self.identifier = identifier
         self.state = state
-        self.result: Optional[TaskResult] = None
+        self.result: Optional[SubproblemResult] = None
 
     @abstractmethod
     def run(self):
@@ -62,9 +61,9 @@ class ComputationalProblem(ABC):
         pass
 
     @abstractmethod
-    def create_task_pool(self) -> TaskPool:
+    def create_subproblem_pool(self) -> SubproblemPool:
         pass
 
     @abstractmethod
-    def create_task(self, identifier: TaskIdentifier, state: State) -> Task:
+    def create_subproblem(self, identifier: SubproblemId, state: State) -> Subproblem:
         pass
