@@ -67,29 +67,41 @@
 
 \section{Assumptions \& Constraints}
 \begin{itemize}
-    \item Packet type - a string consisting of only upper case letters (e.g. IMALIVE, NETTOPOLOGY)
+    \item Packet type - a string consisting of only up to eight upper case letters 
     \item The solution of a single subproblem should be able to fit in a single UDP packet (\verb!<64kB!)
     \item Every subproblem has it's ID and immutable State, common for all subproblems
     \item Every subproblem can be solved
 \end{itemize}
 
 \section{Networking}
-\subsection{Packets}
+\subsection{Packet template}
+\begin{verbatim}
+0                   1
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   Identifier  |   Checksum    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                               |
+|             data              |
+|                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+\end{verbatim}
 
+\subsection{Packets}
 \begin{itemize}
     \item Topology discovery, registering agents
     \begin{itemize}
         \item IMALIVE - send empty packet informing that agent is in the network \verb!<>!
-        \item NETTOPOLOGY - send computational network topology \verb!<agent[]>!
+        \item TOPOLOGY - send computational network topology \verb!<agent[]>!
     \end{itemize}
     \item Subproblem assignment
     \begin{itemize}
-        \item REGSUBPROB - register new subproblem \verb!<subproblem_id>!
-        \item DROPSUBPROB - stop working on this subproblem \verb!<subproblem_id>!
+        \item REGISTER - register new subproblem \verb!<subproblem_id>!
+        \item DROP - stop working on this subproblem \verb!<subproblem_id>!
     \end{itemize}
     \item Result distribution
     \begin{itemize}
-        \item SUBPROBRES - send subproblem result \verb!<subproblem_id, subproblem_result>!
+        \item RESULT - send subproblem result \verb!<subproblem_id, subproblem_result>!
     \end{itemize}
 \end{itemize}
 
@@ -98,10 +110,10 @@ Unless stated otherwise, broadcast concerns broadcasting messages to all agents 
 \# - computational network broadcast\\
 * - LAN broadcast
 \begin{itemize}
-    \item *IMALIVE $\rightarrow$ NETTOPOLOGY
+    \item *IMALIVE $\rightarrow$ TOPOLOGY
     \item \#{}IMALIVE $\rightarrow$ $\varnothing$
-    \item \#{}REGSUBPROB $\rightarrow$ DROPSUBPROB $\vert$ SUBPROBRES
-    \item \#{}SUBPROBRES $\rightarrow$ $\varnothing$
+    \item \#{}REGISTER $\rightarrow$ DROP $\vert$ RESULT
+    \item \#{}RESULT $\rightarrow$ $\varnothing$
 \end{itemize}
 
 \subsection{Network scenarios}
@@ -116,7 +128,7 @@ Agent tries to join the computational network right after launching Codeine. \\\
 \begin{enumerate}
     \item Agent broadcasts IMALIVE packet to all present in LAN.
     \item Agent starts calculations.
-    \item Every other agent already in the computational network replies with NETTOPOLOGY packet.
+    \item Every other agent already in the computational network replies with TOPOLOGY packet.
     \item Agent registers the computational network. End of Scenario 1.
 \end{enumerate}
 \textbf{Scenario extensions:}
@@ -145,19 +157,19 @@ Agent wants to register a subproblem \\\\
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent broadcasts REGSUBPROB packet.
+    \item Agent broadcasts REGISTER packet.
     \item Agent starts calculations.
     \item No response from computational network. End of Scenario 3
 \end{enumerate}
 \textbf{Scenario extensions:}
 \begin{itemize}
-    \item[3a.] An agent replies with DROPSUBPROB.
+    \item[3a.] An agent replies with DROP.
     \begin{itemize} 
     \item[3a.1.] Agent stops calculations.
     \item[3a.2.] Agent sets that subproblem's state to WIP.
     \item[3a.3.] Agent chooses another subproblem. Repeat from point 1. End of Scenario 3.  
     \end{itemize}
-    \item[3b.] An agent replies with SUBPROBRES. 
+    \item[3b.] An agent replies with RESULT. 
     \begin{itemize} 
     \item[3b.1.] Agent stops calculations.
     \item[3b.2.] Agent registers received subproblem result. 
@@ -175,12 +187,12 @@ Agent wants to broadcast subproblem results. \\\\
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent broadcast SUBPROBRES packet. End of Scenario 4.
+    \item Agent broadcast RESULT packet. End of Scenario 4.
 \end{enumerate}
 
 \subsubsection{Scenario 5}
 \noindent\textbf{Story:} \\
-Agent has received a SUBPROBRES packet with subproblem ID of a subproblem he already has a result of. \\\\
+Agent has received a RESULT packet with subproblem ID of a subproblem he already has a result of. \\\\
 \textbf{Prerequisites:}
 \begin{itemize}
     \item Agent is already in the computational network
@@ -188,7 +200,7 @@ Agent has received a SUBPROBRES packet with subproblem ID of a subproblem he alr
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent received a SUBPROBRES packet.
+    \item Agent received a RESULT packet.
     \item Agent tries to register the subproblem result. Subproblem with that ID already has a registered result.
     \item Subproblem result of received packet is ignored. End of Scenario 5.
 \end{enumerate}
@@ -202,7 +214,7 @@ Agent A tries to register a subproblem with ID == X. Agent B replies with STOPWI
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent A broadcasts REGSUBPROB packet with subproblem ID == X.
+    \item Agent A broadcasts REGISTER packet with subproblem ID == X.
     \item Agent B replies with STOPWIP.
     \item Agent A sets subproblem X's state to WIP.
     \item Agent B disconnects.
