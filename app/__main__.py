@@ -31,14 +31,14 @@ def main():
         state = challenge.create_state()
 
         while True:
-            if active_mode and subproblem_pool.in_progress_pool:
-                if subproblem is None:
+            if active_mode:
+                if subproblem is None and subproblem_pool.not_started_pool:
                     identifier = subproblem_pool.pop_identifier()
                     subproblem_pool.register(identifier)
                     subproblem = challenge.create_subproblem(identifier, state)
                     subproblem.start()
                     logger.info(f'Subproblem #{identifier} has started.')
-                elif not subproblem.is_alive():
+                elif not subproblem.is_alive() and subproblem is not None:
                     identifier = subproblem.identifier
                     result = subproblem.result
                     subproblem = None
@@ -48,6 +48,10 @@ def main():
                     if result is not None:
                         logger.info(f'Solution found: {result}.')
                         active_mode = False
+
+                if not subproblem_pool.not_started_pool and not subproblem_pool.in_progress_pool:
+                    # placeholder for running out of subproblems
+                    pass
 
             for command in broker.get_commands():
                 logger.info(f'Received command: {command}')
