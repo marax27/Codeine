@@ -31,7 +31,7 @@ def main():
         state = challenge.create_state()
 
         while True:
-            if active_mode:
+            if active_mode and subproblem_pool.in_progress_pool:
                 if subproblem is None:
                     identifier = subproblem_pool.pop_identifier()
                     subproblem_pool.register(identifier)
