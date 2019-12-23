@@ -15,10 +15,22 @@ class State(base.State):
 class SubproblemId(base.SubproblemId):
     value: str
 
+    def __str__(self) -> str:
+        return f'<{self.value}>'
+
+    def __repr__(self) -> str:
+        return str(self)
+
 
 @dataclass(frozen=True)
 class SubproblemResult(base.SubproblemResult):
     result: Optional[str]
+
+    def __str__(self) -> str:
+        return f'<{self.result}>'
+
+    def __repr__(self) -> str:
+        return str(self)
 
 
 class SubproblemPool(base.SubproblemPool):
