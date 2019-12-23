@@ -1,13 +1,13 @@
 from time import sleep
-from typing import Optional
+from typing import Iterable, Optional
 from .shared.networking import ConnectionSettings, NetworkConnection
 from .shared.configuration import Configuration
 from .shared.logs import get_logger, initialize
 from .messaging.broker import Broker
 from .messaging.logging_broker import LoggingBroker
-from .computing import facade
-from .computing.base import Subproblem
-from .app import ApplicationSettings
+from .computing.facade import get_computational_problem
+from .computing.base import Subproblem, SubproblemResult
+from .app import ApplicationSettings, ComputationManager, EmptySubproblemPoolError
 
 
 def main():
@@ -20,38 +20,39 @@ def main():
     mode_name = 'active' if app_settings.active_mode else 'passive'
     logger.info(f'Codeine started in {mode_name} mode.')
 
+    computation_manager = ComputationManager(get_computational_problem())
+
     broker = create_broker(connection_settings)
     broker.start()
     subproblem: Optional[Subproblem] = None
     active_mode = app_settings.active_mode
 
     try:
-        challenge = facade.get_computational_problem()
-        subproblem_pool = challenge.create_subproblem_pool()
-        state = challenge.create_state()
-
         while True:
             if active_mode:
-                if subproblem is None and subproblem_pool.not_started_pool:
-                    identifier = subproblem_pool.pop_identifier()
-                    subproblem_pool.register(identifier)
-                    subproblem = challenge.create_subproblem(identifier, state)
-                    subproblem.start()
-                    logger.info(f'Subproblem #{identifier} has started.')
-                elif not subproblem.is_alive() and subproblem is not None:
+                if subproblem is None:
+                    try:
+                        subproblem = computation_manager.create_random()
+                        subproblem.start()
+                        identifier = subproblem.identifier
+                        logger.info(f'Subproblem #{identifier} has started.')
+                    except EmptySubproblemPoolError:
+                        logger.warning('No more subproblems to take.')
+                        active_mode = False
+                elif not subproblem.is_alive():
                     identifier = subproblem.identifier
                     result = subproblem.result
+                    computation_manager.handle_completed(subproblem)
                     subproblem = None
-                    subproblem_pool.complete(identifier, result)
-                    logger.info(f'Subproblem #{identifier} has ended.')
+                    logger.info(f'Subproblem #{identifier} has ended (result: {result}).')
 
-                    if result is not None:
-                        logger.info(f'Solution found: {result}.')
-                        active_mode = False
-
-                if not subproblem_pool.not_started_pool and not subproblem_pool.in_progress_pool:
-                    # placeholder for running out of subproblems
-                    pass
+                results = computation_manager.pool.results
+                if is_stop_condition_met(results.values()):
+                    active_mode = False
+                    logger.info(f'Stop condition is met: {results}')
+                elif computation_manager.all_subproblems_finished():
+                    active_mode = False
+                    logger.info(f'All subproblems finished: {results}')
 
             for command in broker.get_commands():
                 logger.info(f'Received command: {command}')
@@ -61,7 +62,7 @@ def main():
     except KeyboardInterrupt:
         pass
     except BaseException as exc:
-        logger.error(f'An unexpected exception has occurred: {exc}')
+        logger.exception(f'An unexpected exception has occurred: {exc}')
 
     logger.info('Gracefully stopping Codeine...')
     broker.stop()
@@ -72,6 +73,10 @@ def main():
         subproblem.join()
 
     logger.info('Gracefully stopped.')
+
+
+def is_stop_condition_met(results: Iterable[SubproblemResult]) -> bool:
+    return any(r is not None for r in results)
 
 
 def create_broker(connection_settings: ConnectionSettings) -> Broker:
