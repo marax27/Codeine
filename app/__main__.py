@@ -46,6 +46,7 @@ def main():
                     logger.info(f'Subproblem #{identifier} has ended.')
 
                     if result is not None:
+                        logger.info(f'Solution found: {result}.')
                         active_mode = False
 
             for command in broker.get_commands():
