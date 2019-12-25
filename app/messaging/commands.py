@@ -47,7 +47,7 @@ class CommandMapper:
         return self
 
     def map_to_bytes(self, command: Command) -> bytes:
-        self._assert_registered(command.get_identifier())
+        #self._assert_registered(command.get_identifier())
         code = command.to_json()
         return (command.get_identifier() + code).encode('utf-8')
 

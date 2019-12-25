@@ -43,6 +43,7 @@ def main():
                     identifier = subproblem.identifier
                     result = subproblem.result
                     computation_manager.handle_completed(subproblem)
+                    computation_manager.broadcast_result(subproblem, broker)
                     subproblem = None
                     logger.info(f'Subproblem #{identifier} has ended (result: {result}).')
 
