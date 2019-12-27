@@ -11,13 +11,6 @@ class DomainCommand(Command):
         pass
 
 
-class DomainCommandFactory():
-
-    @classmethod
-    def create_subproblem_result_command(self, subtask: SubproblemId, result: SubproblemResult):
-        return SubproblemResultCommand(subtask, result)
-
-
 class SubproblemResultCommand(DomainCommand):
     def __init__(self, subtask: SubproblemId, result: SubproblemResult):
         subtask: SubproblemId

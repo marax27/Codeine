@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 from app.computing.base import Subproblem, ComputationalProblem
 from .messaging.broker import Broker
-from app.messaging.domain_commands import DomainCommandFactory
+from app.messaging.domain_commands import SubproblemResultCommand
 
 
 @dataclass_json
@@ -31,7 +31,7 @@ class ComputationManager:
         return not (self.pool.not_started_pool or self.pool.in_progress_pool)
 
     def broadcast_result(self, subproblem: Subproblem, broker: Broker):
-        command = DomainCommandFactory.create_subproblem_result_command(subproblem.identifier, subproblem.result)
+        command = SubproblemResultCommand(subproblem.identifier, subproblem.result)
         broker.broadcast(command)
 
 
