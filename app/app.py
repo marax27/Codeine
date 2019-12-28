@@ -29,10 +29,6 @@ class ComputationManager:
     def all_subproblems_finished(self) -> bool:
         return not (self.pool.not_started_pool or self.pool.in_progress_pool)
 
-    def broadcast_result(self, subproblem: Subproblem, broker: Broker):
-        command = SubproblemResultCommand(subproblem.identifier, subproblem.result)
-        broker.broadcast(command)
-
 
 class EmptySubproblemPoolError(Exception):
     pass

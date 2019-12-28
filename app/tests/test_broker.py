@@ -41,8 +41,9 @@ class NetworkIOMock(NetworkIO):
 
 class BrokerContext:
     def __init__(self):
+        self._mapper = CommandMapper()
         self._connection = NetworkIOMock()
-        self._broker = Broker(self._connection)
+        self._broker = Broker(self._connection, self._mapper)
         self._broker.start()
 
     def __del__(self):

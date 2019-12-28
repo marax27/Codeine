@@ -10,7 +10,6 @@ from .computing.base import Subproblem, SubproblemResult
 from .app import ApplicationSettings, ComputationManager, EmptySubproblemPoolError
 from .messaging.commands import CommandMapper
 from .messaging.domain_commands import SubproblemResultCommand
-from .messaging.topology import ImAliveCommand, NetTopologyCommand
 
 
 def main():
@@ -47,7 +46,7 @@ def main():
                     identifier = subproblem.identifier
                     result = subproblem.result
                     computation_manager.handle_completed(subproblem)
-                    computation_manager.broadcast_result(subproblem, broker)
+                    broadcast_result(subproblem, broker)
                     subproblem = None
                     logger.info(f'Subproblem #{identifier} has ended (result: {result}).')
 
@@ -92,9 +91,12 @@ def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper
 
 def create_command_mapper() -> CommandMapper:
     return CommandMapper() \
-        .register(SubproblemResultCommand) \
-        .register(ImAliveCommand) \
-        .register(NetTopologyCommand) 
+        .register(SubproblemResultCommand)
+      
+
+def broadcast_result(subproblem: Subproblem, broker: Broker):
+        command = SubproblemResultCommand(subproblem.identifier, subproblem.result)
+        broker.broadcast(command)
 
 
 if __name__ == '__main__':
