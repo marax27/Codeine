@@ -25,7 +25,7 @@ def main():
 
     computation_manager = ComputationManager(get_computational_problem())
 
-    mapper = create_mapper()
+    mapper = create_command_mapper()
     broker = create_broker(connection_settings, mapper)
     broker.start()
     subproblem: Optional[Subproblem] = None
@@ -90,7 +90,7 @@ def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper
     return LoggingBroker(connection, logger, mapper)
 
 
-def create_mapper() -> CommandMapper:
+def create_command_mapper() -> CommandMapper:
     return CommandMapper() \
         .register(SubproblemResultCommand) \
         .register(ImAliveCommand) \
