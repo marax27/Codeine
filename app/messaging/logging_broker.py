@@ -2,11 +2,12 @@ from logging import Logger
 from app.shared.networking import ConnectionSettings, NetworkIO
 from .commands import Command
 from .broker import Broker
+from .commands import CommandMapper
 
 
 class LoggingBroker(Broker):
-    def __init__(self, connection: NetworkIO, logger: Logger):
-        super().__init__(connection)
+    def __init__(self, connection: NetworkIO, logger: Logger, mapper: CommandMapper):
+        super().__init__(connection, mapper)
         self._logger = logger
 
     def run(self):

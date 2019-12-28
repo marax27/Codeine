@@ -8,6 +8,9 @@ from .messaging.logging_broker import LoggingBroker
 from .computing.facade import get_computational_problem
 from .computing.base import Subproblem, SubproblemResult
 from .app import ApplicationSettings, ComputationManager, EmptySubproblemPoolError
+from .messaging.commands import CommandMapper
+from .messaging.domain_commands import SubproblemResultCommand
+from .messaging.topology import ImAliveCommand, NetTopologyCommand
 
 
 def main():
@@ -22,7 +25,8 @@ def main():
 
     computation_manager = ComputationManager(get_computational_problem())
 
-    broker = create_broker(connection_settings)
+    mapper = create_mapper()
+    broker = create_broker(connection_settings, mapper)
     broker.start()
     subproblem: Optional[Subproblem] = None
     active_mode = app_settings.active_mode
@@ -80,10 +84,17 @@ def is_stop_condition_met(results: Iterable[SubproblemResult]) -> bool:
     return any(r is not None for r in results)
 
 
-def create_broker(connection_settings: ConnectionSettings) -> Broker:
+def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper) -> Broker:
     logger = get_logger('broker')
     connection = NetworkConnection(connection_settings)
-    return LoggingBroker(connection, logger)
+    return LoggingBroker(connection, logger, mapper)
+
+
+def create_mapper() -> CommandMapper:
+    return CommandMapper() \
+        .register(SubproblemResultCommand) \
+        .register(ImAliveCommand) \
+        .register(NetTopologyCommand) 
 
 
 if __name__ == '__main__':

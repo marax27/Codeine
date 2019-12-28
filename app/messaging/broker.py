@@ -9,13 +9,13 @@ from .command_handler import CommandHandler, CommandNotRegisteredException, Payl
 
 
 class Broker(StoppableThread):
-    def __init__(self, connection: NetworkIO):
+    def __init__(self, connection: NetworkIO, mapper: CommandMapper):
         super().__init__()
         self._connection = connection
+        self._command_mapper = mapper
         self._topology = Topology().with_forbidden(connection.get_address())
         self._send_queue = Queue()
         self._recv_queue = Queue()
-        self._command_mapper = self._create_command_mapper()
         self._command_handler = self._create_command_handler()
 
     def get_commands(self) -> Iterable[Command]:
@@ -78,11 +78,6 @@ class Broker(StoppableThread):
         for recipient in recipients:
             packet = Packet(command_as_bytes, recipient)
             self._connection.send(packet)
-
-    def _create_command_mapper(self) -> CommandMapper:
-        return CommandMapper() \
-            .register(ImAliveCommand) \
-            .register(NetTopologyCommand)
 
     def _create_command_handler(self) -> CommandHandler:
         return CommandHandler() \

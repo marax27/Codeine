@@ -4,7 +4,6 @@ from app.computing.base import Subproblem, ComputationalProblem
 from .messaging.broker import Broker
 from app.messaging.domain_commands import SubproblemResultCommand
 
-
 @dataclass_json
 @dataclass(frozen=True)
 class ApplicationSettings:
