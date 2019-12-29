@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import abstractmethod
 from time import time
-from typing import Dict, Iterable, Set, Tuple
+from typing import Dict, Iterable, Optional, Set, Tuple
 from dataclasses import dataclass
 from app.shared.networking import ConnectionSettings
 from .commands import Command
@@ -35,18 +35,16 @@ class Topology:
         for address in addresses:
             self.add_or_update(address)
 
-    def get_addresses(self) -> Iterable[ConnectionSettings]:
+    def get_all_addresses(self) -> Iterable[ConnectionSettings]:
         return self._agents.keys()
 
-    def get_address_by_id(self, identifier: int) -> ConnectionSettings:
-        matches = [a for a in self.get_addresses() if hash(a) == identifier]
-        if len(matches) != 1:
-            raise AgentIdentifierNotFoundError(identifier)
-        return matches[0]
-
-
-class AgentIdentifierNotFoundError(Exception):
-    pass
+    def get_addresses(self, address: Optional[ConnectionSettings]) -> Iterable[ConnectionSettings]:
+        all_addresses = self.get_all_addresses()
+        if address is None:
+            return all_addresses
+        if address in all_addresses:
+            return {address}
+        raise RecipientNotRegisteredError()
 
 
 @dataclass(frozen=True)
@@ -63,7 +61,7 @@ class ImAliveCommand(NetworkCommand):
         return "IMALIVE"
 
     def invoke(self, receiver: Topology) -> Iterable[Command]:
-        yield NetTopologyCommand(agents=receiver.get_addresses())
+        yield NetTopologyCommand(agents=receiver.get_all_addresses())
 
 
 @dataclass(frozen=True)
@@ -77,3 +75,7 @@ class NetTopologyCommand(NetworkCommand):
     def invoke(self, receiver: Topology) -> Iterable[Command]:
         receiver.add_or_update_many(self.agents)
         yield from ()
+
+
+class RecipientNotRegisteredError(Exception):
+    pass

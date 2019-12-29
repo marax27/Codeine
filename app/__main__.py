@@ -92,11 +92,11 @@ def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper
 def create_command_mapper() -> CommandMapper:
     return CommandMapper() \
         .register(SubproblemResultCommand)
-      
+
 
 def broadcast_result(subproblem: Subproblem, broker: Broker):
-        command = SubproblemResultCommand(subproblem.identifier, subproblem.result)
-        broker.broadcast(command)
+    command = SubproblemResultCommand(subproblem.identifier, subproblem.result)
+    broker.broadcast(command)
 
 
 if __name__ == '__main__':

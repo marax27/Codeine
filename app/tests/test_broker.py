@@ -187,7 +187,7 @@ def test_send_sendSampleCommandToSingleAgent_commandSentToSingleAgent(
 
     expected_topology = (ConnectionSettings('0.1.2.3', 123),)
     given_response_command = NetTopologyCommand(expected_topology)
-    context.broker.send(Payload(given_response_command, hash(given_agents[0])))
+    context.broker.send(Payload(given_response_command, given_agents[0]))
 
     context.wait_some()
     outgoing_packets = context.dump_outgoing_packets()

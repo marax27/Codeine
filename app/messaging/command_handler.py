@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Any, Dict, Iterable, Optional
 from dataclasses import dataclass
+from app.shared.networking import ConnectionSettings
 from .commands import Command
 
 
@@ -8,7 +9,7 @@ from .commands import Command
 class Payload:
     '''Command + information where to send it.'''
     command: Command
-    address_id: Optional[int]
+    address: Optional[ConnectionSettings]
 
 
 class CommandHandler:
@@ -22,13 +23,13 @@ class CommandHandler:
         return self
 
     def handle(self, payload: Payload) -> Iterable[Payload]:
-        command, address_id = payload.command, payload.address_id
+        command, address = payload.command, payload.address
 
         receiver = self._get_receiver(command)
         responses = list(command.invoke(receiver))
         if responses:
             for response in responses:
-                yield Payload(response, address_id)
+                yield Payload(response, address)
 
     def _get_receiver(self, command: Command) -> Optional[Any]:
         for registered_type, receiver in self._registered_types.items():
