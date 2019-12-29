@@ -6,27 +6,9 @@ from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 
 
-class CommandDestination(ABC):
-    @abstractmethod
-    def get_recipient_id(self, sender_id: int) -> Optional[int]:
-        pass
-
-
-class ReturnToSender(CommandDestination):
-    def get_recipient_id(self, sender_id: int) -> int:
-        return sender_id
-
-
-class Broadcast(CommandDestination):
-    def get_recipient_id(self, _: int) -> None:
-        return None
-
-
 @dataclass_json
 @dataclass(frozen=True)
 class Command(ABC):
-    response_destination: ClassVar[CommandDestination]
-    
     @classmethod
     @abstractmethod
     def get_identifier(cls) -> str:
