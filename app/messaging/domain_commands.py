@@ -1,8 +1,9 @@
 from abc import abstractmethod
-from typing import Iterable, ClassVar, Optional
+from dataclasses import dataclass
+from typing import Iterable, Optional
 from .commands import Command
 from ..computing.base import SubproblemPool, SubproblemId, SubproblemResult
-from dataclasses import dataclass
+
 
 class DomainCommand(Command):
 

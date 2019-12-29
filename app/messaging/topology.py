@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import abstractmethod
 from time import time
-from typing import ClassVar, Dict, Iterable, Set, Tuple
+from typing import Dict, Iterable, Set, Tuple
 from dataclasses import dataclass
 from app.shared.networking import ConnectionSettings
 from .commands import Command

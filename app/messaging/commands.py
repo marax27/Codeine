@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from re import search
-from typing import Any, ClassVar, Dict, Iterable, Optional, Tuple
+from typing import Any, Dict, Iterable, Tuple
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 
@@ -22,7 +22,7 @@ class Command(ABC):
 class CommandMapper:
     def __init__(self):
         self._registered_commands: Dict[str, type] = dict()
-        
+
     def register(self, command_type: type) -> CommandMapper:
         identifier = command_type.get_identifier()
         self._registered_commands[identifier] = command_type
