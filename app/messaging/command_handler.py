@@ -27,10 +27,8 @@ class CommandHandler:
         receiver = self._get_receiver(command)
         responses = list(command.invoke(receiver))
         if responses:
-            destination = command.response_destination
-            recipient_id = destination.get_recipient_id(address_id)
             for response in responses:
-                yield Payload(response, recipient_id)
+                yield Payload(response, address_id)
 
     def _get_receiver(self, command: Command) -> Optional[Any]:
         for registered_type, receiver in self._registered_types.items():

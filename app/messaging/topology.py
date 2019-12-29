@@ -1,10 +1,10 @@
 from __future__ import annotations
 from abc import abstractmethod
 from time import time
-from typing import ClassVar, Dict, Iterable, Set, Tuple
+from typing import Dict, Iterable, Set, Tuple
 from dataclasses import dataclass
 from app.shared.networking import ConnectionSettings
-from .commands import Command, Broadcast, ReturnToSender, CommandDestination
+from .commands import Command
 
 
 @dataclass(frozen=True)
@@ -58,8 +58,6 @@ class NetworkCommand(Command):
 
 @dataclass(frozen=True)
 class ImAliveCommand(NetworkCommand):
-    response_destination: ClassVar[CommandDestination] = ReturnToSender()
-
     @classmethod
     def get_identifier(cls) -> str:
         return "IMALIVE"
