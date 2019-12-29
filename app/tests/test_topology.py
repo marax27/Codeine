@@ -1,6 +1,6 @@
 import pytest
 
-from app.messaging.topology import Topology, NetTopologyCommand, ImAliveCommand, AgentIdentifierNotFoundError
+from app.messaging.topology import Topology, NetTopologyCommand, ImAliveCommand, RecipientNotRegisteredError
 from app.messaging.commands import CommandMapper
 from app.shared.networking import ConnectionSettings
 
@@ -65,7 +65,7 @@ def test_addOrUpdate_sampleAddress_addressPresentInReturnedAddresses():
     sut = Topology()
 
     sut.add_or_update(given_address)
-    assert given_address in sut.get_addresses()
+    assert given_address in sut.get_all_addresses()
 
 
 def test_addOrUpdateMany_sampleAddresses_initialAndReturnedAddressesAreEqual():
@@ -76,17 +76,38 @@ def test_addOrUpdateMany_sampleAddresses_initialAndReturnedAddressesAreEqual():
     sut = Topology()
 
     sut.add_or_update_many(given_addresses)
-    assert set(sut.get_addresses()) == set(given_addresses)
-
-
-def test_getAddressesById_validIdentifier_returnExpectedAddress():
-    sut = Topology()
-
-    with pytest.raises(AgentIdentifierNotFoundError):
-        sut.get_address_by_id(123)
+    assert set(sut.get_all_addresses()) == set(given_addresses)
 
 
 def test_withForbidden_addForbiddenAddress_addressNotAdded():
     given_address = ConnectionSettings('1.2.3.4', 1000)
     sut = Topology().with_forbidden(given_address)
-    assert given_address not in sut.get_addresses()
+    assert given_address not in sut.get_all_addresses()
+
+
+def test_getAddresses_sampleTopology_iterableWithGivenTopology():
+    given_address = ConnectionSettings('1.2.3.4', 1000)
+    sut = Topology()
+
+    sut.add_or_update(given_address)
+    assert given_address in sut.get_addresses(given_address)
+
+
+def test_getAddresses_unexpectedTopology_raise():
+    given_address = ConnectionSettings('1.2.3.4', 1000)
+    sut = Topology()
+
+    with pytest.raises(RecipientNotRegisteredError):
+        sut.get_addresses(given_address)
+
+
+def test_getAddresses_none_allRegisteredAddresses():
+    given_addresses = [
+        ConnectionSettings('1.2.3.4', 1000),
+        ConnectionSettings('1.2.3.5', 2000)
+    ]
+
+    sut = Topology()
+    sut.add_or_update_many(given_addresses)
+
+    assert all(addr in sut.get_addresses(None) for addr in given_addresses)

@@ -59,22 +59,14 @@ class Broker(StoppableThread):
     def _handle_outgoing_commands(self):
         while not self._send_queue.empty():
             payload: Payload = self._send_queue.get()
-            command, recipient_id = payload.command, payload.address_id
-
-            recipients = self._get_recipients_by_id(recipient_id)
-            self._send(recipients, command)
+            recipients = self._topology.get_addresses(payload.address)
+            self._send(recipients, payload.command)
 
     def _to_payload(self, packet: Packet) -> Payload:
-        address_id = hash(packet.address)
-        return Payload(self._to_command(packet.data), address_id)
+        return Payload(self._to_command(packet.data), packet.address)
 
     def _to_command(self, data: bytes) -> Command:
         return self._command_mapper.map_from_bytes(data)
-
-    def _get_recipients_by_id(self, recipient_id: Optional[int]) -> Iterable[ConnectionSettings]:
-        if recipient_id is None:
-            return self._topology.get_addresses()
-        return {self._topology.get_address_by_id(recipient_id)}
 
     def _send(self, recipients: Iterable[ConnectionSettings], command: Command):
         command_as_bytes = self._command_mapper.map_to_bytes(command)
