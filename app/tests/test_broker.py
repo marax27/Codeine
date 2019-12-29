@@ -4,6 +4,7 @@ from typing import List, Optional
 import pytest
 from app.shared.networking import Packet, NetworkIO
 from app.messaging.commands import CommandMapper
+from app.messaging.command_handler import Payload
 from app.messaging.topology import ImAliveCommand, NetTopologyCommand
 from app.messaging.broker import Broker
 from app.shared.networking import ConnectionSettings
@@ -43,8 +44,8 @@ class BrokerContext:
     def __init__(self):
         self._mapper = CommandMapper()
         self._connection = NetworkIOMock()
-        self._broker = Broker(self._connection, self._mapper)
-        self._broker.start()
+        self.broker = Broker(self._connection, self._mapper)
+        self.broker.start()
 
     def __del__(self):
         self.stop()
@@ -69,9 +70,9 @@ class BrokerContext:
         self._connection.incoming.put(packet)
 
     def stop(self):
-        if self._broker:
-            self._broker.stop()
-            self._broker.join()
+        if self.broker:
+            self.broker.stop()
+            self.broker.join()
 
 
 @pytest.fixture()
@@ -117,7 +118,7 @@ def test_nettopo_sendBrokerItsAddress_brokerDoesntRegisterTheAddress(
         ):
     given_address = context.get_broker_address()
     sender_address = ConnectionSettingsFactory.sample()
-    given_command = NetTopologyCommand([given_address])
+    given_command = NetTopologyCommand((given_address,))
     command_as_bytes = mapper.map_to_bytes(given_command)
     given_packet = Packet(command_as_bytes, sender_address)
 
@@ -133,3 +134,69 @@ def test_nettopo_sendBrokerItsAddress_brokerDoesntRegisterTheAddress(
     packet_data = outgoing_packets[0].data
     command: NetTopologyCommand = mapper.map_from_bytes(packet_data)
     assert given_address not in set(command.agents)
+
+
+def test_broadcast_broadcastSampleCommand_commandSentToAllRegisteredAgents(
+        context: BrokerContext,
+        mapper: CommandMapper
+        ):
+    given_agents = (
+        ConnectionSettings('9.9.9.9', 1000),
+        ConnectionSettings('9.9.9.8', 1000),
+        ConnectionSettings('9.9.9.7', 1000),
+    )
+    given_topology_command = NetTopologyCommand(given_agents)
+    topology_as_bytes = mapper.map_to_bytes(given_topology_command)
+    context.send_to_broker(Packet(topology_as_bytes, given_agents[0]))
+
+    context.wait_some()
+    context.dump_outgoing_packets()
+
+    expected_topology = (ConnectionSettings('0.1.2.3', 123),)
+    given_response_command = NetTopologyCommand(expected_topology)
+    context.broker.broadcast(given_response_command)
+
+    context.wait_some()
+    outgoing_packets = context.dump_outgoing_packets()
+
+    def meets_expectation(packets, address):
+        properly_addressed = [p.data for p in packets if p.address == address]
+        commands = [mapper.map_from_bytes(data) for data in properly_addressed]
+        return any(command.agents == expected_topology for command in commands)
+
+    assert meets_expectation(outgoing_packets, given_agents[0])
+    assert meets_expectation(outgoing_packets, given_agents[1])
+    assert meets_expectation(outgoing_packets, given_agents[2])
+
+
+def test_send_sendSampleCommandToSingleAgent_commandSentToSingleAgent(
+        context: BrokerContext,
+        mapper: CommandMapper
+        ):
+    given_agents = (
+        ConnectionSettings('9.9.9.9', 1000),
+        ConnectionSettings('9.9.9.8', 1000),
+        ConnectionSettings('9.9.9.7', 1000),
+    )
+    given_topology_command = NetTopologyCommand(given_agents)
+    topology_as_bytes = mapper.map_to_bytes(given_topology_command)
+    context.send_to_broker(Packet(topology_as_bytes, given_agents[0]))
+
+    context.wait_some()
+    context.dump_outgoing_packets()
+
+    expected_topology = (ConnectionSettings('0.1.2.3', 123),)
+    given_response_command = NetTopologyCommand(expected_topology)
+    context.broker.send(Payload(given_response_command, hash(given_agents[0])))
+
+    context.wait_some()
+    outgoing_packets = context.dump_outgoing_packets()
+
+    def meets_expectation(packets, address):
+        properly_addressed = [p.data for p in packets if p.address == address]
+        commands = [mapper.map_from_bytes(data) for data in properly_addressed]
+        return any(command.agents == expected_topology for command in commands)
+
+    assert meets_expectation(outgoing_packets, given_agents[0])
+    assert not meets_expectation(outgoing_packets, given_agents[1])
+    assert not meets_expectation(outgoing_packets, given_agents[2])
