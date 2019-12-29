@@ -8,6 +8,8 @@ from .messaging.logging_broker import LoggingBroker
 from .computing.facade import get_computational_problem
 from .computing.base import Subproblem, SubproblemResult
 from .app import ApplicationSettings, ComputationManager, EmptySubproblemPoolError
+from .messaging.commands import CommandMapper
+from .messaging.domain_commands import SubproblemResultCommand
 
 
 def main():
@@ -22,7 +24,8 @@ def main():
 
     computation_manager = ComputationManager(get_computational_problem())
 
-    broker = create_broker(connection_settings)
+    mapper = create_command_mapper()
+    broker = create_broker(connection_settings, mapper)
     broker.start()
     subproblem: Optional[Subproblem] = None
     active_mode = app_settings.active_mode
@@ -43,6 +46,7 @@ def main():
                     identifier = subproblem.identifier
                     result = subproblem.result
                     computation_manager.handle_completed(subproblem)
+                    broadcast_result(subproblem, broker)
                     subproblem = None
                     logger.info(f'Subproblem #{identifier} has ended (result: {result}).')
 
@@ -79,10 +83,20 @@ def is_stop_condition_met(results: Iterable[SubproblemResult]) -> bool:
     return any(r is not None for r in results)
 
 
-def create_broker(connection_settings: ConnectionSettings) -> Broker:
+def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper) -> Broker:
     logger = get_logger('broker')
     connection = NetworkConnection(connection_settings)
-    return LoggingBroker(connection, logger)
+    return LoggingBroker(connection, logger, mapper)
+
+
+def create_command_mapper() -> CommandMapper:
+    return CommandMapper() \
+        .register(SubproblemResultCommand)
+      
+
+def broadcast_result(subproblem: Subproblem, broker: Broker):
+        command = SubproblemResultCommand(subproblem.identifier, subproblem.result)
+        broker.broadcast(command)
 
 
 if __name__ == '__main__':

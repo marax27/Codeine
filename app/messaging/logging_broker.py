@@ -2,11 +2,12 @@ from logging import Logger
 from app.shared.networking import ConnectionSettings, NetworkIO
 from .commands import Command
 from .broker import Broker
+from .commands import CommandMapper
 
 
 class LoggingBroker(Broker):
-    def __init__(self, connection: NetworkIO, logger: Logger):
-        super().__init__(connection)
+    def __init__(self, connection: NetworkIO, logger: Logger, mapper: CommandMapper):
+        super().__init__(connection, mapper)
         self._logger = logger
 
     def run(self):
@@ -28,4 +29,6 @@ class LoggingBroker(Broker):
         count = len(set(recipients))
         identifier = command.get_identifier()
         self._logger.info(f'Sending {identifier} to {count} recipients')
+        command_as_bytes = self._command_mapper.map_to_bytes(command)
+        self._logger.info(f'Sending command: {command_as_bytes.decode("utf-8")}')
         super()._send(recipients, command)
