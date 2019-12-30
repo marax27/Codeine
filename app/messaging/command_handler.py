@@ -26,7 +26,7 @@ class CommandHandler:
         command, address = payload.command, payload.address
 
         receiver = self._get_receiver(command)
-        responses = list(command.invoke(receiver))
+        responses = command.invoke(receiver)
         if responses:
             for response in responses:
                 yield Payload(response, address)

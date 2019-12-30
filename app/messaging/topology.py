@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import abstractmethod
 from time import time
-from typing import Dict, Iterable, Optional, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 from dataclasses import dataclass
 from app.shared.networking import ConnectionSettings
 from .commands import Command
@@ -50,7 +50,7 @@ class Topology:
 @dataclass(frozen=True)
 class NetworkCommand(Command):
     @abstractmethod
-    def invoke(self, receiver: Topology) -> Iterable[Command]:
+    def invoke(self, receiver: Topology) -> List[Command]:
         pass
 
 
@@ -60,8 +60,8 @@ class ImAliveCommand(NetworkCommand):
     def get_identifier(cls) -> str:
         return "IMALIVE"
 
-    def invoke(self, receiver: Topology) -> Iterable[Command]:
-        yield NetTopologyCommand(agents=receiver.get_all_addresses())
+    def invoke(self, receiver: Topology) -> List[Command]:
+        return [NetTopologyCommand(agents=receiver.get_all_addresses())]
 
 
 @dataclass(frozen=True)
@@ -72,9 +72,9 @@ class NetTopologyCommand(NetworkCommand):
     def get_identifier(cls) -> str:
         return "NETTOPO"
 
-    def invoke(self, receiver: Topology) -> Iterable[Command]:
+    def invoke(self, receiver: Topology) -> List[Command]:
         receiver.add_or_update_many(self.agents)
-        yield from ()
+        return []
 
 
 class RecipientNotRegisteredError(Exception):
