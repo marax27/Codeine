@@ -21,7 +21,11 @@ class BaseResultCommand(DomainCommand):
         return 'RESULT'
 
     def invoke(self, receiver: base.SubproblemPool) -> Iterable[Command]:
-        pass
+        if self.identifier not in receiver.results:
+            if self.identifier not in receiver.in_progress_pool:
+                receiver.register(self.identifier)
+            receiver.complete(self.identifier, self.result)
+        yield from ()
 
 
 def create_result_command(identifier_type: type, result_type: type) -> type:
