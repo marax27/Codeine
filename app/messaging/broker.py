@@ -21,7 +21,7 @@ class Broker(StoppableThread):
         self._command_mapper.register(ImAliveCommand) 
         self._command_mapper.register(NetTopologyCommand) 
 
-    def get_commands(self) -> Iterable[Command]:
+    def get_payloads(self) -> Iterable[Command]:
         while not self._recv_queue.empty():
             yield self._recv_queue.get()
 

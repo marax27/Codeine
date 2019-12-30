@@ -59,8 +59,8 @@ def main(computation_manager: ComputationManager):
                     active_mode = False
                     logger.info(f'All subproblems finished: {results}')
 
-            for command in broker.get_commands():
-                logger.info(f'Received command: {command}')
+            for payload in broker.get_payloads():
+                logger.info(f'From {payload.address}: received {payload.command}')
             if not broker.is_alive():
                 break
             sleep(0.01)
