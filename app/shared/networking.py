@@ -18,6 +18,11 @@ class ConnectionSettings:
     def to_tuple(self) -> tuple:
         return (self.address, self.port)
 
+    def get_priority(self) -> int:
+        data = bytes(map(int, self.address.split('.')))
+        data += (self.port).to_bytes(2, 'big')
+        return int.from_bytes(data, byteorder='big', signed=False)
+
     def __repr__(self) -> str:
         return f'<{self.address}:{self.port}>'
 
