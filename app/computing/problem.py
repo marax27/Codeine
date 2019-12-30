@@ -4,6 +4,7 @@ import hashlib
 from dataclasses import dataclass
 from typing import Optional, Set
 from . import base
+from .domain_commands import create_result_command
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,7 @@ class SubproblemPool(base.SubproblemPool):
 
 class Subproblem(base.Subproblem):
     def run(self):
+        self.result = SubproblemResult(None)
         for suffix in map(''.join, itertools.product(string.ascii_lowercase,
                           repeat=5)):
             if self.requested_stop():
@@ -66,3 +68,6 @@ class ComputationalProblem(base.ComputationalProblem):
 
     def create_subproblem(self, identifier: SubproblemId, state: State) -> Subproblem:
         return Subproblem(identifier, state)
+
+    result_command_type: type = create_result_command(SubproblemId,
+                                                      SubproblemResult)

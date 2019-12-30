@@ -9,10 +9,13 @@ from .computing.facade import get_computational_problem
 from .computing.base import Subproblem, SubproblemResult
 from .app import ApplicationSettings, ComputationManager, EmptySubproblemPoolError
 from .messaging.commands import CommandMapper
-from .messaging.domain_commands import SubproblemResultCommand
 
 
-def main():
+ResultCommand: type = None
+
+
+def main(computation_manager: ComputationManager):
+
     config = Configuration(__package__) \
         .add_json_file('config.json')
     connection_settings = config.get('Connection').bind_as(ConnectionSettings)
@@ -21,8 +24,6 @@ def main():
 
     mode_name = 'active' if app_settings.active_mode else 'passive'
     logger.info(f'Codeine started in {mode_name} mode.')
-
-    computation_manager = ComputationManager(get_computational_problem())
 
     mapper = create_command_mapper()
     broker = create_broker(connection_settings, mapper)
@@ -91,14 +92,16 @@ def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper
 
 def create_command_mapper() -> CommandMapper:
     return CommandMapper() \
-        .register(SubproblemResultCommand)
+        .register(ResultCommand)
 
 
 def broadcast_result(subproblem: Subproblem, broker: Broker):
-    command = SubproblemResultCommand(subproblem.identifier, subproblem.result)
+    command = ResultCommand(subproblem.identifier, subproblem.result)
     broker.broadcast(command)
 
 
 if __name__ == '__main__':
     initialize()
-    main()
+    PROBLEM = get_computational_problem()
+    ResultCommand = PROBLEM.result_command_type
+    main(ComputationManager(PROBLEM))

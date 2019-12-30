@@ -67,3 +67,5 @@ class ComputationalProblem(ABC):
     @abstractmethod
     def create_subproblem(self, identifier: SubproblemId, state: State) -> Subproblem:
         pass
+
+    result_command_type: type
