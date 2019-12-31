@@ -20,6 +20,7 @@ class Broker(StoppableThread):
         self._command_handler = self._create_command_handler()
         self._command_mapper.register(ImAliveCommand)
         self._command_mapper.register(NetTopologyCommand)
+        self._discover_network()
 
     def get_payloads(self) -> Iterable[Payload]:
         while not self._recv_queue.empty():
@@ -77,3 +78,9 @@ class Broker(StoppableThread):
     def _create_command_handler(self) -> CommandHandler:
         return CommandHandler() \
             .register(NetworkCommand, self._topology)
+
+    def _discover_network(self):
+        command = ImAliveCommand()
+        port = self._connection.get_address().port
+        LAN_broadcast_settings = ConnectionSettings('<broadcast>', port)
+        self.send(Payload(command, LAN_broadcast_settings))

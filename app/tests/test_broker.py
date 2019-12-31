@@ -109,6 +109,10 @@ def test_imalive_receiveImalive_sendNettopo(
     given_address = ConnectionSettingsFactory.sample()
     given_packet = get_imalive_packet(given_address)
 
+    # dump all packets that may have been sent on initialization
+    context.wait_some()
+    context.dump_outgoing_packets()
+
     context.send_to_broker(given_packet)
 
     context.wait_some()
@@ -130,6 +134,10 @@ def test_nettopo_sendBrokerItsAddress_brokerDoesntRegisterTheAddress(
     given_command = NetTopologyCommand((given_address,))
     command_as_bytes = mapper.map_to_bytes(given_command)
     given_packet = Packet(command_as_bytes, sender_address)
+
+    # dump all packets that may have been sent on initialization
+    context.wait_some()
+    context.dump_outgoing_packets()
 
     context.send_to_broker(given_packet)
     context.wait_some()
@@ -205,3 +213,18 @@ def test_send_sendSampleCommandToSingleAgent_commandSentToSingleAgent(
     assert meets_expectation(outgoing_packets, given_agents[0])
     assert not meets_expectation(outgoing_packets, given_agents[1])
     assert not meets_expectation(outgoing_packets, given_agents[2])
+
+
+def test_imalive_initializeBroker_imAliveIsBroadcasted(
+        context: BrokerContext,
+        mapper: CommandMapper
+        ):
+    context.wait_some()
+    outgoing_packets = context.dump_outgoing_packets()
+
+    packet_data = outgoing_packets[0].data
+    packet_address = outgoing_packets[0].address
+    packet_data_as_bytes = mapper.map_from_bytes(packet_data)
+
+    assert isinstance(packet_data_as_bytes, ImAliveCommand)
+    assert packet_address.address == '<broadcast>'

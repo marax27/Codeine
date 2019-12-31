@@ -44,6 +44,8 @@ class Topology:
             return all_addresses
         if address in all_addresses:
             return {address}
+        if address.address == '<broadcast>':
+            return {address}
         raise RecipientNotRegisteredError()
 
 
