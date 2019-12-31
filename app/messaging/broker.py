@@ -28,6 +28,12 @@ class Broker(StoppableThread):
     def broadcast(self, command: Command):
         self.send(Payload(command, None))
 
+    def discover_network(self):
+        command = ImAliveCommand()
+        port = self._connection.get_address().port
+        LAN_broadcast_settings = ConnectionSettings('<broadcast>', port)
+        self.send(Payload(command, LAN_broadcast_settings))
+
     def send(self, payload: Payload):
         self._send_queue.put(payload)
 

@@ -205,3 +205,20 @@ def test_send_sendSampleCommandToSingleAgent_commandSentToSingleAgent(
     assert meets_expectation(outgoing_packets, given_agents[0])
     assert not meets_expectation(outgoing_packets, given_agents[1])
     assert not meets_expectation(outgoing_packets, given_agents[2])
+
+
+def test_discoverNetwork_initializeBroker_imAliveIsBroadcasted(
+        context: BrokerContext,
+        mapper: CommandMapper
+        ):
+    context.broker.discover_network()
+    
+    context.wait_some()
+    outgoing_packets = context.dump_outgoing_packets()
+
+    packet_data_as_bytes = outgoing_packets[0].data
+    packet_address = outgoing_packets[0].address
+    packet_data = mapper.map_from_bytes(packet_data_as_bytes)
+
+    assert isinstance(packet_data, ImAliveCommand)
+    assert packet_address.address == '<broadcast>'
