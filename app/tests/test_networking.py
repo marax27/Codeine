@@ -1,3 +1,4 @@
+import pytest
 from app.shared.networking import ConnectionSettings, Packet
 
 
@@ -31,3 +32,15 @@ def test_packet_sampleData_expectedPacket():
 
     assert actual_packet.address == given_address
     assert actual_packet.data == given_data
+
+
+@pytest.mark.parametrize('first,other', [
+    (ConnectionSettings('1.2.3.4', 101), ConnectionSettings('1.2.3.4', 100)),
+    (ConnectionSettings('1.2.3.5', 100), ConnectionSettings('1.2.3.4', 100)),
+    (ConnectionSettings('2.1.1.1', 100), ConnectionSettings('1.1.1.2', 100)),
+])
+def test_getPriority_sampleAddresses_firstGreaterThanOther(
+        first: ConnectionSettings,
+        other: ConnectionSettings):
+
+    assert first.get_priority() > other.get_priority()
