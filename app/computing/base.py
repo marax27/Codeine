@@ -69,3 +69,4 @@ class ComputationalProblem(ABC):
         pass
 
     result_command_type: type
+    register_command_type: type

@@ -7,12 +7,14 @@ from .messaging.broker import Broker
 from .messaging.logging_broker import LoggingBroker
 from .computing.facade import get_computational_problem
 from .computing.base import Subproblem, SubproblemResult, SubproblemPool
+from .computing.domain_commands import DomainCommand
 from .app import ApplicationSettings, ComputationManager, EmptySubproblemPoolError
 from .messaging.commands import CommandMapper
 from .messaging.command_handler import CommandHandler, CommandNotRegisteredException
 
 
 ResultCommand: type = None
+RegisterCommand: type = None
 
 
 def main(computation_manager: ComputationManager):
@@ -40,6 +42,7 @@ def main(computation_manager: ComputationManager):
                         subproblem = computation_manager.create_random()
                         subproblem.start()
                         identifier = subproblem.identifier
+                        broker.broadcast(RegisterCommand(identifier))
                         logger.info(f'Subproblem #{identifier} has started.')
                     except EmptySubproblemPoolError:
                         logger.warning('No more subproblems to take.')
@@ -101,12 +104,13 @@ def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper
 
 def create_command_mapper() -> CommandMapper:
     return CommandMapper() \
-        .register(ResultCommand)
+        .register(ResultCommand) \
+        .register(RegisterCommand)
 
 
 def create_command_handler(pool: SubproblemPool) -> CommandHandler:
     return CommandHandler() \
-        .register(ResultCommand, pool)
+        .register(DomainCommand, pool)
 
 
 def broadcast_result(subproblem: Subproblem, broker: Broker):
@@ -118,4 +122,5 @@ if __name__ == '__main__':
     initialize()
     PROBLEM = get_computational_problem()
     ResultCommand = PROBLEM.result_command_type
+    RegisterCommand = PROBLEM.register_command_type
     main(ComputationManager(PROBLEM))
