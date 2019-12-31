@@ -1,4 +1,4 @@
-from typing import Iterable, Tuple
+from typing import List, Tuple
 from dataclasses import dataclass
 import pytest
 
@@ -14,8 +14,8 @@ class SampleCommand(Command):
     def get_identifier(cls) -> str:
         return 'SAMPLECMD'
 
-    def invoke(self, _) -> Iterable[Command]:
-        yield from ()
+    def invoke(self, _) -> List[Command]:
+        return []
 
 
 class CommandFactory:

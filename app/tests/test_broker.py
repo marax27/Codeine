@@ -1,6 +1,6 @@
 from time import sleep
 from queue import Queue, Empty
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import pytest
 from app.shared.networking import Packet, NetworkIO
 from app.messaging.commands import CommandMapper
@@ -68,6 +68,15 @@ class BrokerContext:
 
     def send_to_broker(self, packet: Packet):
         self._connection.incoming.put(packet)
+
+    def register_agents(self,
+                        agents: Tuple[ConnectionSettings],
+                        command_mapper: CommandMapper,
+                        sender: ConnectionSettings
+            ):
+        topology_command = NetTopologyCommand(agents)
+        topology_as_bytes = command_mapper.map_to_bytes(topology_command)
+        self.send_to_broker(Packet(topology_as_bytes, sender))
 
     def stop(self):
         if self.broker:
@@ -145,9 +154,7 @@ def test_broadcast_broadcastSampleCommand_commandSentToAllRegisteredAgents(
         ConnectionSettings('9.9.9.8', 1000),
         ConnectionSettings('9.9.9.7', 1000),
     )
-    given_topology_command = NetTopologyCommand(given_agents)
-    topology_as_bytes = mapper.map_to_bytes(given_topology_command)
-    context.send_to_broker(Packet(topology_as_bytes, given_agents[0]))
+    context.register_agents(given_agents, mapper, given_agents[0])
 
     context.wait_some()
     context.dump_outgoing_packets()
@@ -178,9 +185,7 @@ def test_send_sendSampleCommandToSingleAgent_commandSentToSingleAgent(
         ConnectionSettings('9.9.9.8', 1000),
         ConnectionSettings('9.9.9.7', 1000),
     )
-    given_topology_command = NetTopologyCommand(given_agents)
-    topology_as_bytes = mapper.map_to_bytes(given_topology_command)
-    context.send_to_broker(Packet(topology_as_bytes, given_agents[0]))
+    context.register_agents(given_agents, mapper, given_agents[0])
 
     context.wait_some()
     context.dump_outgoing_packets()

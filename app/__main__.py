@@ -6,13 +6,17 @@ from .shared.logs import get_logger, initialize
 from .messaging.broker import Broker
 from .messaging.logging_broker import LoggingBroker
 from .computing.facade import get_computational_problem
-from .computing.base import Subproblem, SubproblemResult
+from .computing.base import Subproblem, SubproblemResult, SubproblemPool
 from .app import ApplicationSettings, ComputationManager, EmptySubproblemPoolError
 from .messaging.commands import CommandMapper
-from .messaging.domain_commands import SubproblemResultCommand
+from .messaging.command_handler import CommandHandler, CommandNotRegisteredException
 
 
-def main():
+ResultCommand: type = None
+
+
+def main(computation_manager: ComputationManager):
+
     config = Configuration(__package__) \
         .add_json_file('config.json')
     connection_settings = config.get('Connection').bind_as(ConnectionSettings)
@@ -22,10 +26,8 @@ def main():
     mode_name = 'active' if app_settings.active_mode else 'passive'
     logger.info(f'Codeine started in {mode_name} mode.')
 
-    computation_manager = ComputationManager(get_computational_problem())
-
-    mapper = create_command_mapper()
-    broker = create_broker(connection_settings, mapper)
+    handler = create_command_handler(computation_manager.pool)
+    broker = create_broker(connection_settings, create_command_mapper())
     broker.start()
     subproblem: Optional[Subproblem] = None
     active_mode = app_settings.active_mode
@@ -58,8 +60,16 @@ def main():
                     active_mode = False
                     logger.info(f'All subproblems finished: {results}')
 
-            for command in broker.get_commands():
-                logger.info(f'Received command: {command}')
+            for payload in broker.get_payloads():
+                try:
+                    logger.info(f'Received command from {payload.address}: {payload.command}')
+                    responses = handler.handle(payload)
+                    for response in responses:
+                        broker.send(response)
+                except CommandNotRegisteredException as exc:
+                    logger.error(f'Unregistered command received from {payload.address}: {exc}')
+
+                logger.info(computation_manager.pool.results)
             if not broker.is_alive():
                 break
             sleep(0.01)
@@ -80,7 +90,7 @@ def main():
 
 
 def is_stop_condition_met(results: Iterable[SubproblemResult]) -> bool:
-    return any(r is not None for r in results)
+    return any(r.result is not None for r in results)
 
 
 def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper) -> Broker:
@@ -91,14 +101,21 @@ def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper
 
 def create_command_mapper() -> CommandMapper:
     return CommandMapper() \
-        .register(SubproblemResultCommand)
+        .register(ResultCommand)
+
+
+def create_command_handler(pool: SubproblemPool) -> CommandHandler:
+    return CommandHandler() \
+        .register(ResultCommand, pool)
 
 
 def broadcast_result(subproblem: Subproblem, broker: Broker):
-    command = SubproblemResultCommand(subproblem.identifier, subproblem.result)
+    command = ResultCommand(subproblem.identifier, subproblem.result)
     broker.broadcast(command)
 
 
 if __name__ == '__main__':
     initialize()
-    main()
+    PROBLEM = get_computational_problem()
+    ResultCommand = PROBLEM.result_command_type
+    main(ComputationManager(PROBLEM))

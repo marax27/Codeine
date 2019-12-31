@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from re import search
-from typing import Any, Dict, Iterable, Tuple
+from typing import Any, Dict, List, Tuple
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 
@@ -15,7 +15,7 @@ class Command(ABC):
         pass
 
     @abstractmethod
-    def invoke(self, receiver: Any) -> Iterable[Command]:
+    def invoke(self, receiver: Any) -> List[Command]:
         pass
 
 
