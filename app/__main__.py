@@ -31,6 +31,7 @@ def main(computation_manager: ComputationManager):
     handler = create_command_handler(computation_manager.pool)
     broker = create_broker(connection_settings, create_command_mapper())
     broker.start()
+    broker.discover_network()
     subproblem: Optional[Subproblem] = None
     active_mode = app_settings.active_mode
 
