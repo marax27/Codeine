@@ -14,7 +14,7 @@ class Broker(StoppableThread):
         super().__init__()
         self._connection = connection
         self._command_mapper = mapper
-        self._topology = Topology().with_forbidden(connection.get_address())
+        self._topology = Topology().forbid_local_interfaces_addresses(connection.get_address().port)
         self._send_queue = Queue()
         self._recv_queue = Queue()
         self._command_handler = self._create_command_handler()
