@@ -7,7 +7,7 @@ from app.messaging.commands import CommandMapper
 from app.messaging.command_handler import Payload
 from app.messaging.topology import ImAliveCommand, NetTopologyCommand
 from app.messaging.broker import Broker
-from app.shared.networking import ConnectionSettings
+from app.shared.networking import ConnectionSettings, BrokerSettings
 
 
 class ConnectionSettingsFactory:
@@ -18,6 +18,16 @@ class ConnectionSettingsFactory:
     @staticmethod
     def other():
         return ConnectionSettings('1.2.3.5', 6789)
+
+
+class BrokerSettingsFactory:
+    @staticmethod
+    def sample():
+        return BrokerSettings(5)
+
+    @staticmethod
+    def other():
+        return BrokerSettings(6)
 
 
 class NetworkIOMock(NetworkIO):
@@ -200,3 +210,8 @@ def test_send_sendSampleCommandToSingleAgent_commandSentToSingleAgent(
     assert meets_expectation(outgoing_packets, given_agents[0])
     assert not meets_expectation(outgoing_packets, given_agents[1])
     assert not meets_expectation(outgoing_packets, given_agents[2])
+
+
+def test_broadcast_sendImAlivePacket(
+        ):
+    return 0

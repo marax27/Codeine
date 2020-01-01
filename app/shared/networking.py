@@ -22,6 +22,22 @@ class ConnectionSettings:
         return f'<{self.address}:{self.port}>'
 
 
+@dataclass_json
+@dataclass(frozen=True)
+class BrokerSettings:
+    broadcast_delay: int
+
+    @staticmethod
+    def from_tuple(broadcast_info: tuple):
+        return BrokerSettings(broadcast_info[0])
+
+    def to_tuple(self) -> tuple:
+        return (self.broadcast_delay,)
+
+    def __repr__(self) -> str:
+        return f'<{self.broadcast_delay}>'
+
+
 @dataclass(frozen=True)
 class Packet:
     data: bytes

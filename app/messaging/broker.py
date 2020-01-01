@@ -7,6 +7,7 @@ from .commands import CommandMapper, Command
 from .topology import Topology, NetworkCommand, ImAliveCommand, NetTopologyCommand
 from .command_handler import CommandHandler, CommandNotRegisteredException, Payload
 from .topology import ImAliveCommand, NetTopologyCommand
+from ..shared.networking import BrokerSettings
 
 
 class Broker(StoppableThread):
@@ -19,7 +20,8 @@ class Broker(StoppableThread):
         self._recv_queue = Queue()
         self._command_handler = self._create_command_handler()
         self._command_mapper.register(ImAliveCommand) 
-        self._command_mapper.register(NetTopologyCommand) 
+        self._command_mapper.register(NetTopologyCommand)
+        self._broker_settings = BrokerSettings
 
     def get_commands(self) -> Iterable[Command]:
         while not self._recv_queue.empty():
@@ -36,6 +38,9 @@ class Broker(StoppableThread):
             self._handle_incoming_packet()
             self._handle_outgoing_commands()
             sleep(0.01)
+            while True:
+                self.broadcast(ImAliveCommand())
+                sleep(BrokerSettings.broadcast_delay)
 
     def _handle_incoming_packet(self):
         packet = self._connection.receive()
