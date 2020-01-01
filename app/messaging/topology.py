@@ -3,7 +3,7 @@ from abc import abstractmethod
 from time import time
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 from dataclasses import dataclass
-from app.shared.networking import ConnectionSettings
+from app.shared.networking import ConnectionSettings, get_local_interfaces_addresses
 from .commands import Command
 
 
@@ -25,6 +25,12 @@ class Topology:
 
     def with_forbidden(self, address: ConnectionSettings) -> Topology:
         self._forbidden.add(address)
+        return self
+
+    def forbid_local_interfaces_addresses(self, port: int):
+        local_interfaces_addresses = get_local_interfaces_addresses(port)
+        for address in local_interfaces_addresses:
+            self.with_forbidden(ConnectionSettings(address, port))
         return self
 
     def add_or_update(self, address: ConnectionSettings):

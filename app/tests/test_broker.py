@@ -121,30 +121,6 @@ def test_imalive_receiveImalive_sendNettopo(
     assert isinstance(outgoing_command, NetTopologyCommand)
 
 
-def test_nettopo_sendBrokerItsAddress_brokerDoesntRegisterTheAddress(
-        context: BrokerContext,
-        mapper: CommandMapper
-        ):
-    given_address = context.get_broker_address()
-    sender_address = ConnectionSettingsFactory.sample()
-    given_command = NetTopologyCommand((given_address,))
-    command_as_bytes = mapper.map_to_bytes(given_command)
-    given_packet = Packet(command_as_bytes, sender_address)
-
-    context.send_to_broker(given_packet)
-    context.wait_some()
-
-    context.send_to_broker(get_imalive_packet(sender_address))
-    context.wait_some()
-
-    outgoing_packets = context.dump_outgoing_packets()
-    assert len(outgoing_packets) == 1
-
-    packet_data = outgoing_packets[0].data
-    command: NetTopologyCommand = mapper.map_from_bytes(packet_data)
-    assert given_address not in set(command.agents)
-
-
 def test_broadcast_broadcastSampleCommand_commandSentToAllRegisteredAgents(
         context: BrokerContext,
         mapper: CommandMapper
