@@ -3,6 +3,7 @@ from queue import Queue
 from typing import Iterable, Optional
 from app.shared.multithreading import StoppableThread
 from app.shared.networking import Packet, ConnectionSettings, NetworkIO
+from app.computing.domain_commands import BaseDropCommand
 from .commands import CommandMapper, Command
 from .topology import Topology, NetworkCommand, ImAliveCommand, NetTopologyCommand
 from .command_handler import CommandHandler, CommandNotRegisteredException, Payload
