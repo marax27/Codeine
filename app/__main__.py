@@ -106,7 +106,8 @@ def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper
 def create_command_mapper() -> CommandMapper:
     return CommandMapper() \
         .register(ResultCommand) \
-        .register(RegisterCommand)
+        .register(RegisterCommand) \
+        .register(DropCommand)
 
 
 def create_command_handler(pool: SubproblemPool) -> CommandHandler:
@@ -124,4 +125,5 @@ if __name__ == '__main__':
     PROBLEM = get_computational_problem()
     ResultCommand = PROBLEM.result_command_type
     RegisterCommand = PROBLEM.register_command_type
+    DropCommand = PROBLEM.drop_command_type
     main(ComputationManager(PROBLEM))
