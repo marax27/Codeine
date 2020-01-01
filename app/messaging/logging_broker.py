@@ -26,9 +26,7 @@ class LoggingBroker(Broker):
             raise
 
     def _send(self, recipients, command):
-        count = len(set(recipients))
         identifier = command.get_identifier()
-        self._logger.info(f'Sending {identifier} to {count} recipients')
         command_as_bytes = self._command_mapper.map_to_bytes(command)
-        self._logger.info(f'Sending command: {command_as_bytes.decode("utf-8")}')
+        self._logger.info(f'Sending {identifier} to {list(recipients)}: {command_as_bytes.decode("utf-8")}')
         super()._send(recipients, command)

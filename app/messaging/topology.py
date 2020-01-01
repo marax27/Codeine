@@ -46,7 +46,7 @@ class Topology:
             return {address}
         if address.address == '<broadcast>':
             return {address}
-        raise RecipientNotRegisteredError()
+        raise RecipientNotRegisteredError(address)
 
 
 @dataclass(frozen=True)
