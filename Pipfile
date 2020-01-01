@@ -13,6 +13,7 @@ rope = "*"
 
 [packages]
 dataclasses-json = "*"
+atomicwrites = "*"
 
 [requires]
 python_version = "3.7"
