@@ -76,6 +76,10 @@ class Broker(StoppableThread):
         packet = self._connection.receive()
         try:
             command = self._to_command(packet.data)
+            command.context.initialize(
+                packet.address,
+                self._connection.get_address()
+            )
             return Payload(command, packet.address)
         except Exception:
             pass

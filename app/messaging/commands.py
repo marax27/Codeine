@@ -12,6 +12,12 @@ class CommandContext:
     sender_address: ConnectionSettings = None
     local_address: ConnectionSettings = None
 
+    def initialize(self,
+                   sender_address: ConnectionSettings,
+                   local_address: ConnectionSettings):
+        self.sender_address = sender_address
+        self.local_address = local_address
+
 
 @dataclass_json
 @dataclass(frozen=True)
