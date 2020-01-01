@@ -94,3 +94,10 @@ class NetworkConnection(NetworkIO):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         sock.setblocking(False)
         return sock
+
+
+def get_local_interfaces_addresses(port: int):
+    local_interfaces_addrinfo = socket.getaddrinfo(socket.gethostname(), port)
+    address_amount = len(local_interfaces_addrinfo)
+    local_interfaces_addressess = [local_interfaces_addrinfo[i][4][0] for i in range(0, address_amount)]
+    return local_interfaces_addressess
