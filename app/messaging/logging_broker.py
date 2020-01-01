@@ -23,7 +23,7 @@ class LoggingBroker(Broker):
         try:
             return super()._to_command(data)
         except Exception as exc:
-            self._logger.error(f'Packet -> Command mapping failed: {exc}')
+            self._logger.exception(f'Packet -> Command mapping failed: {exc}')
             raise
 
     def _handle_single_outgoing(self, payload):
