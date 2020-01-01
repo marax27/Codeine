@@ -46,7 +46,16 @@ class BaseRegisterCommand(DomainCommand):
         return 'REGISTER'
 
     def invoke(self, receiver: base.SubproblemPool) -> List[Command]:
-        return []
+        if self.identifier in receiver.results:
+            result = receiver.results[self.identifier]
+            result_command = BaseResultCommand(self.identifier, result)
+            return [result_command]
+
+        if self.identifier in receiver.in_progress_pool:
+            drop_command = BaseDropCommand(self.identifier)
+            return [drop_command]
+
+        return[]
 
 
 def create_register_command(identifier_type: type) -> type:
@@ -54,5 +63,26 @@ def create_register_command(identifier_type: type) -> type:
         'RegisterCommand',
         (('identifier', identifier_type),),
         bases=(BaseRegisterCommand,),
+        frozen=True
+    )
+
+
+@dataclass(frozen=True)
+class BaseDropCommand(DomainCommand):
+    identifier: base.SubproblemId
+
+    @classmethod
+    def get_identifier(cls) -> str:
+        return 'DROP'
+
+    def invoke(self, receiver: base.SubproblemPool) -> List[Command]:
+        return []
+
+
+def create_drop_command(identifier_type: type) -> type:
+    return make_dataclass(
+        'DropCommand',
+        (('identifier', identifier_type),),
+        bases=(BaseDropCommand,),
         frozen=True
     )
