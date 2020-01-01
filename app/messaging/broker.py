@@ -44,16 +44,11 @@ class Broker(StoppableThread):
             sleep(0.01)
 
     def _handle_incoming_packet(self):
-        packet = self._connection.receive()
-        if packet is None:
+        payload = self._receive()
+        if payload is None:
             return
 
-        try:
-            payload = self._to_payload(packet)
-        except Exception:
-            return
-
-        self._topology.add_or_update(packet.address)
+        self._topology.add_or_update(payload.address)
 
         try:
             responses = self._command_handler.handle(payload)
@@ -68,11 +63,17 @@ class Broker(StoppableThread):
             recipients = self._topology.get_addresses(payload.address)
             self._send(recipients, payload.command)
 
-    def _to_payload(self, packet: Packet) -> Payload:
-        return Payload(self._to_command(packet.data), packet.address)
-
     def _to_command(self, data: bytes) -> Command:
         return self._command_mapper.map_from_bytes(data)
+
+    def _receive(self) -> Optional[Payload]:
+        packet = self._connection.receive()
+        try:
+            command = self._to_command(packet.data)
+            return Payload(command, packet.address)
+        except Exception:
+            pass
+        return None
 
     def _send(self, recipients: Iterable[ConnectionSettings], command: Command):
         command_as_bytes = self._command_mapper.map_to_bytes(command)

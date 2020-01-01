@@ -25,6 +25,12 @@ class LoggingBroker(Broker):
             self._logger.error(f'Packet -> Command mapping failed: {exc}')
             raise
 
+    def _receive(self):
+        result = super()._receive()
+        if result is not None:
+            self._logger.info(f'Received from {result.address}: {result.command}')
+        return result
+
     def _send(self, recipients, command):
         identifier = command.get_identifier()
         command_as_bytes = self._command_mapper.map_to_bytes(command)
