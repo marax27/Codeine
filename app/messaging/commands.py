@@ -2,13 +2,24 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from re import search
 from typing import Any, Dict, List, Tuple
-from dataclasses import dataclass
+from dataclasses import dataclass, InitVar, field
 from dataclasses_json import dataclass_json
+from app.shared.networking import ConnectionSettings
+
+
+@dataclass(frozen=False)
+class CommandContext:
+    sender_address: ConnectionSettings = None
+    local_address: ConnectionSettings = None
 
 
 @dataclass_json
 @dataclass(frozen=True)
 class Command(ABC):
+
+    context: InitVar[CommandContext] = field(default=CommandContext(),
+                                             init=False)
+
     @classmethod
     @abstractmethod
     def get_identifier(cls) -> str:
