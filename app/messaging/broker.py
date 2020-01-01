@@ -6,7 +6,7 @@ from app.shared.networking import Packet, ConnectionSettings, NetworkIO
 from .commands import CommandMapper, Command
 from .topology import Topology, NetworkCommand, ImAliveCommand, NetTopologyCommand
 from .command_handler import CommandHandler, CommandNotRegisteredException, Payload
-from .topology import ImAliveCommand, NetTopologyCommand
+from .topology import ImAliveCommand, NetTopologyCommand, RecipientNotRegisteredError
 
 
 class Broker(StoppableThread):
@@ -40,20 +40,15 @@ class Broker(StoppableThread):
     def run(self):
         while not self.requested_stop():
             self._handle_incoming_packet()
-            self._handle_outgoing_commands()
+            self._handle_outgoing()
             sleep(0.01)
 
     def _handle_incoming_packet(self):
-        packet = self._connection.receive()
-        if packet is None:
+        payload = self._receive()
+        if payload is None:
             return
 
-        try:
-            payload = self._to_payload(packet)
-        except Exception:
-            return
-
-        self._topology.add_or_update(packet.address)
+        self._topology.add_or_update(payload.address)
 
         try:
             responses = self._command_handler.handle(payload)
@@ -62,17 +57,29 @@ class Broker(StoppableThread):
         except CommandNotRegisteredException:
             self._recv_queue.put(payload)
 
-    def _handle_outgoing_commands(self):
+    def _handle_outgoing(self):
         while not self._send_queue.empty():
-            payload: Payload = self._send_queue.get()
-            recipients = self._topology.get_addresses(payload.address)
-            self._send(recipients, payload.command)
-
-    def _to_payload(self, packet: Packet) -> Payload:
-        return Payload(self._to_command(packet.data), packet.address)
+            try:
+                payload: Payload = self._send_queue.get()
+                self._handle_single_outgoing(payload)
+            except RecipientNotRegisteredError:
+                pass
 
     def _to_command(self, data: bytes) -> Command:
         return self._command_mapper.map_from_bytes(data)
+
+    def _handle_single_outgoing(self, payload: Payload):
+        recipients = self._topology.get_addresses(payload.address)
+        self._send(recipients, payload.command)
+
+    def _receive(self) -> Optional[Payload]:
+        packet = self._connection.receive()
+        try:
+            command = self._to_command(packet.data)
+            return Payload(command, packet.address)
+        except Exception:
+            pass
+        return None
 
     def _send(self, recipients: Iterable[ConnectionSettings], command: Command):
         command_as_bytes = self._command_mapper.map_to_bytes(command)
