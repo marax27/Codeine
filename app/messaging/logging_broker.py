@@ -31,6 +31,7 @@ class LoggingBroker(Broker):
             super()._handle_single_outgoing(payload)
         except RecipientNotRegisteredError as exc:
             self._logger.warning(f'Cannot send a command to {payload.address}: {exc}')
+            raise
 
     def _receive(self):
         result = super()._receive()
