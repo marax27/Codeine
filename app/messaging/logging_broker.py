@@ -3,6 +3,7 @@ from app.shared.networking import ConnectionSettings, NetworkIO
 from .commands import Command
 from .broker import Broker
 from .commands import CommandMapper
+from .topology import RecipientNotRegisteredError
 
 
 class LoggingBroker(Broker):
@@ -24,6 +25,12 @@ class LoggingBroker(Broker):
         except Exception as exc:
             self._logger.error(f'Packet -> Command mapping failed: {exc}')
             raise
+
+    def _handle_single_outgoing(self, payload):
+        try:
+            super()._handle_single_outgoing(payload)
+        except RecipientNotRegisteredError as exc:
+            self._logger.warning(f'Cannot send a command to {payload.address}: {exc}')
 
     def _receive(self):
         result = super()._receive()
