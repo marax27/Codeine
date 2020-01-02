@@ -51,9 +51,16 @@ class BaseRegisterCommand(DomainCommand):
             result_command = BaseResultCommand(self.identifier, result)
             return [result_command]
 
+        sender_priority = self.context.sender_address.get_priority()
+        receiver_priority = self.context.local_address.get_priority()
+
         if self.identifier in receiver.in_progress_pool:
+            if receiver_priority <= sender_priority and self.identifier == receiver.current_subproblem.identifier:
+                receiver.drop_current_subproblem()
+                return []
+
             drop_command = BaseDropCommand(self.identifier)
-            return [drop_command]
+            return [drop_command]  
 
         return[]
 
@@ -76,6 +83,8 @@ class BaseDropCommand(DomainCommand):
         return 'DROP'
 
     def invoke(self, receiver: base.SubproblemPool) -> List[Command]:
+        if self.identifier == receiver.current_subproblem.identifier:
+            receiver.drop_current_subproblem()
         return []
 
 

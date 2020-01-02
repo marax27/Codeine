@@ -43,11 +43,18 @@ def main(computation_manager: ComputationManager):
                         subproblem = computation_manager.create_random()
                         subproblem.start()
                         identifier = subproblem.identifier
+                        computation_manager.pool.current_subproblem = subproblem
                         broker.broadcast(RegisterCommand(identifier))
                         logger.info(f'Subproblem #{identifier} has started.')
                     except EmptySubproblemPoolError:
                         logger.warning('No more subproblems to take.')
                         active_mode = False
+                elif computation_manager.pool.current_subproblem == None:
+                    identifier = subproblem.identifier
+                    subproblem.stop()
+                    subproblem = None
+                    logger.info(f'Subproblem #{identifier} has been forcibly dropped.')
+                    continue
                 elif not subproblem.is_alive():
                     identifier = subproblem.identifier
                     result = subproblem.result
