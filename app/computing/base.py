@@ -21,7 +21,7 @@ class SubproblemPool(ABC):
         self.not_started_pool = self._create_initial_pool()
         self.in_progress_pool = set()
         self.results = dict()
-        self.current_subproblem: Subproblem = None
+        self.current_subproblem_id: SubproblemId = None
 
     @abstractmethod
     def _create_initial_pool(self) -> Set[SubproblemId]:
@@ -38,11 +38,12 @@ class SubproblemPool(ABC):
         self.in_progress_pool.remove(identifier)
         self.not_started_pool.add(identifier)
 
-    def drop_current_subproblem(self):
-        self.current_subproblem = None
+    def signal_subproblem_stop(self):
+        self.current_subproblem_id = None
 
     def complete(self, identifier: SubproblemId, result: SubproblemResult):
         self.in_progress_pool.remove(identifier)
+        self.current_subproblem_id = None
         if identifier not in self.results:
             self.results[identifier] = result
 

@@ -38,30 +38,31 @@ def main(computation_manager: ComputationManager):
     try:
         while True:
             if active_mode:
+                if requested_subproblem_drop(subproblem, computation_manager):
+                    subproblem.stop()
+                    logger.info(f'Subproblem drop requested.')
+
                 if subproblem is None:
                     try:
                         subproblem = computation_manager.create_random()
                         subproblem.start()
                         identifier = subproblem.identifier
-                        computation_manager.pool.current_subproblem = subproblem
                         broker.broadcast(RegisterCommand(identifier))
                         logger.info(f'Subproblem #{identifier} has started.')
                     except EmptySubproblemPoolError:
                         logger.warning('No more subproblems to take.')
                         active_mode = False
-                elif computation_manager.pool.current_subproblem == None:
-                    identifier = subproblem.identifier
-                    subproblem.stop()
-                    subproblem = None
-                    logger.info(f'Subproblem #{identifier} has been forcibly dropped.')
-                    continue
                 elif not subproblem.is_alive():
                     identifier = subproblem.identifier
-                    result = subproblem.result
-                    computation_manager.handle_completed(subproblem)
-                    broadcast_result(subproblem, broker)
-                    subproblem = None
-                    logger.info(f'Subproblem #{identifier} has ended (result: {result}).')
+                    if computation_manager.pool.current_subproblem_id is None:
+                        subproblem = None
+                        logger.info(f'Subproblem #{identifier} has been dropped.')
+                    else:
+                        result = subproblem.result
+                        computation_manager.handle_completed(subproblem)
+                        broadcast_result(subproblem, broker)
+                        subproblem = None
+                        logger.info(f'Subproblem #{identifier} has ended (result: {result}).')
 
                 results = computation_manager.pool.results
                 if is_stop_condition_met(results.values()):
@@ -98,6 +99,11 @@ def main(computation_manager: ComputationManager):
         subproblem.join()
 
     logger.info('Gracefully stopped.')
+
+
+def requested_subproblem_drop(subproblem, computation_manager) -> bool:
+    return (computation_manager.pool.current_subproblem_id is None
+            and subproblem is not None)
 
 
 def is_stop_condition_met(results: Iterable[SubproblemResult]) -> bool:

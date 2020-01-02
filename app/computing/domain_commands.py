@@ -55,14 +55,14 @@ class BaseRegisterCommand(DomainCommand):
         receiver_priority = self.context.local_address.get_priority()
 
         if self.identifier in receiver.in_progress_pool:
-            if receiver_priority <= sender_priority and self.identifier == receiver.current_subproblem.identifier:
-                receiver.drop_current_subproblem()
+            if receiver_priority <= sender_priority and self.identifier == receiver.current_subproblem_id:
+                receiver.signal_subproblem_stop()
                 return []
 
             drop_command = BaseDropCommand(self.identifier)
             return [drop_command]  
 
-        return[]
+        return []
 
 
 def create_register_command(identifier_type: type) -> type:
@@ -83,8 +83,8 @@ class BaseDropCommand(DomainCommand):
         return 'DROP'
 
     def invoke(self, receiver: base.SubproblemPool) -> List[Command]:
-        if self.identifier == receiver.current_subproblem.identifier:
-            receiver.drop_current_subproblem()
+        if self.identifier == receiver.current_subproblem_id:
+            receiver.signal_subproblem_stop()
         return []
 
 
