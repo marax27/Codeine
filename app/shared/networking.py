@@ -1,8 +1,9 @@
 import socket
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 from dataclasses_json import dataclass_json
+from ifaddr import get_adapters
 
 
 @dataclass_json
@@ -96,8 +97,9 @@ class NetworkConnection(NetworkIO):
         return sock
 
 
-def get_local_interfaces_addresses(port: int):
-    local_interfaces_addrinfo = socket.getaddrinfo(socket.gethostname(), port)
-    address_amount = len(local_interfaces_addrinfo)
-    local_interfaces_addressess = [local_interfaces_addrinfo[i][4][0] for i in range(0, address_amount)]
-    return local_interfaces_addressess
+def get_local_interfaces_ip_addresses() -> List[str]:
+    adapters = get_adapters()
+    addresses_per_adapter = [[x.ip for x in a.ips] for a in adapters]
+    all_addresses = [ip for sublist in addresses_per_adapter for ip in sublist]
+    ipv4_addresses = filter(lambda ip: isinstance(ip, str), all_addresses)
+    return list(ipv4_addresses)
