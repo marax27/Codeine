@@ -97,8 +97,9 @@ class NetworkConnection(NetworkIO):
         return sock
 
 
-def get_local_interfaces_addresses() -> List[str]:
+def get_local_interfaces_ip_addresses() -> List[str]:
     adapters = get_adapters()
     addresses_per_adapter = [[x.ip for x in a.ips] for a in adapters]
     all_addresses = [ip for sublist in addresses_per_adapter for ip in sublist]
-    return list(filter(lambda ip: isinstance(ip, str), all_addresses))
+    ipv4_addresses = filter(lambda ip: isinstance(ip, str), all_addresses)
+    return list(ipv4_addresses)
