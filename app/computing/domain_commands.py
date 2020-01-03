@@ -85,7 +85,7 @@ class BaseDropCommand(DomainCommand):
         return 'DROP'
 
     def invoke(self, receiver: base.SubproblemPool) -> List[Command]:
-        if self.identifier == receiver.current_subproblem_id:
+        if self.identifier in receiver.in_progress_pool and self.identifier == receiver.current_subproblem_id:
             receiver.signal_subproblem_stop()
         return []
 
