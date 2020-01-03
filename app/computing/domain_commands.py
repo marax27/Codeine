@@ -51,11 +51,8 @@ class BaseRegisterCommand(DomainCommand):
             result_command = BaseResultCommand(self.identifier, result)
             return [result_command]
 
-        sender_priority = self.context.sender_address.get_priority()
-        receiver_priority = self.context.local_address.get_priority()
-
         if self.identifier in receiver.in_progress_pool:
-            if receiver_priority <= sender_priority and self.identifier == receiver.current_subproblem_id:
+            if self._is_sender_priority_greater() and self.identifier == receiver.current_subproblem_id:
                 receiver.signal_subproblem_stop()
                 return []
 
@@ -63,6 +60,11 @@ class BaseRegisterCommand(DomainCommand):
             return [drop_command]  
 
         return []
+    
+    def _is_sender_priority_greater(self):
+        sender_priority = self.context.sender_address.get_priority()
+        receiver_priority = self.context.local_address.get_priority()
+        return receiver_priority <= sender_priority
 
 
 def create_register_command(identifier_type: type) -> type:
