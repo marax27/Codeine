@@ -57,14 +57,14 @@ class BaseRegisterCommand(DomainCommand):
                 return []
             else:
                 drop_command = BaseDropCommand(self.identifier)
-                return [drop_command]  
+                return [drop_command]
 
         return []
     
     def _is_sender_priority_greater(self):
         sender_priority = self.context.sender_address.get_priority()
         receiver_priority = self.context.local_address.get_priority()
-        return receiver_priority <= sender_priority
+        return receiver_priority < sender_priority
 
 
 def create_register_command(identifier_type: type) -> type:

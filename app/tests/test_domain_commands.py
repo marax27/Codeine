@@ -46,7 +46,7 @@ def test_resultCommand_invokeUponSamplePool_resultIsInPool():
 
 
 def test_registerCommand_invokeNoSubproblemBeingComputed_returnsEmptyList():
-    given_id = TestId(42)
+    given_id = TestId(4)
     given_pool = TestPool()
     given_command = RegisterCommand(given_id)
 
@@ -56,11 +56,11 @@ def test_registerCommand_invokeNoSubproblemBeingComputed_returnsEmptyList():
 
 
 def test_registerCommand_invokeWithDifferentSubproblemInProgress_returnsEmptyList():
-    given_id = TestId(42)
-    current_id = TestId(16)
+    given_id = TestId(4)
+    current_id = TestId(2)
     given_pool = TestPool()
     given_command = RegisterCommand(given_id)
-    given_pool.in_progress_pool.add(current_id)
+    given_pool.register(current_id)
     given_pool.current_subproblem_id = current_id
 
     register_invoke_output = given_command.invoke(given_pool)
@@ -69,10 +69,10 @@ def test_registerCommand_invokeWithDifferentSubproblemInProgress_returnsEmptyLis
 
 
 def test_registerCommand_invokeSenderHasGreaterPriority_returnsEmptyList():
-    given_id = TestId(42)
+    given_id = TestId(4)
     given_pool = TestPool()
     given_command = RegisterCommand(given_id)
-    given_pool.in_progress_pool.add(given_id)
+    given_pool.register(given_id)
     given_pool.current_subproblem_id = given_id
 
     sender_address = ConnectionSettingsFactory.higher_priority_address()
@@ -86,10 +86,10 @@ def test_registerCommand_invokeSenderHasGreaterPriority_returnsEmptyList():
 
 
 def test_registerCommand_invokeSubproblemInProgressOnDifferentAgent_returnsEmptyList():
-    given_id = TestId(42)
+    given_id = TestId(4)
     given_pool = TestPool()
     given_command = RegisterCommand(given_id)
-    given_pool.in_progress_pool.add(given_id)
+    given_pool.register(given_id)
 
     register_invoke_output = given_command.invoke(given_pool)
 
@@ -97,8 +97,8 @@ def test_registerCommand_invokeSubproblemInProgressOnDifferentAgent_returnsEmpty
 
 
 def test_registerCommand_invokeWithSubproblemAlreadyInResults_returnsResult():
-    given_id = TestId(42)
-    given_result = TestResult(16)
+    given_id = TestId(4)
+    given_result = TestResult(2)
     given_pool = TestPool()
     given_command = RegisterCommand(given_id)
     given_pool.results[given_id] = given_result
@@ -112,10 +112,10 @@ def test_registerCommand_invokeWithSubproblemAlreadyInResults_returnsResult():
 
 
 def test_registerCommand_invokeWithSubproblemInProgress_returnsDrop():
-    given_id = TestId(42)
+    given_id = TestId(4)
     given_pool = TestPool()
     given_command = RegisterCommand(given_id)
-    given_pool.in_progress_pool.add(given_id)
+    given_pool.register(given_id)
     given_pool.current_subproblem_id = given_id
 
     sender_address = ConnectionSettingsFactory.lower_priority_address()

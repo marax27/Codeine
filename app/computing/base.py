@@ -43,7 +43,7 @@ class SubproblemPool(ABC):
 
     def complete(self, identifier: SubproblemId, result: SubproblemResult):
         self.in_progress_pool.remove(identifier)
-        self.current_subproblem_id = None
+        self.signal_subproblem_stop()
         if identifier not in self.results:
             self.results[identifier] = result
 

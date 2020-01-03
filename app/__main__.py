@@ -55,14 +55,13 @@ def main(computation_manager: ComputationManager):
                 elif not subproblem.is_alive():
                     identifier = subproblem.identifier
                     if computation_manager.pool.current_subproblem_id is None:
-                        subproblem = None
                         logger.info(f'Subproblem #{identifier} has been dropped.')
                     else:
                         result = subproblem.result
                         computation_manager.handle_completed(subproblem)
                         broadcast_result(subproblem, broker)
-                        subproblem = None
                         logger.info(f'Subproblem #{identifier} has ended (result: {result}).')
+                    subproblem = None
 
                 results = computation_manager.pool.results
                 if is_stop_condition_met(results.values()):
