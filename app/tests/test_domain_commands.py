@@ -127,3 +127,82 @@ def test_registerCommand_invokeWithSubproblemInProgress_returnsDrop():
     assert len(register_invoke_output) == 1
     assert isinstance(register_invoke_output[0], BaseDropCommand)
     assert register_invoke_output[0].identifier == given_id
+
+
+def test_dropCommand_invokeWithCurrentSubproblemId_currentSubproblemDropped():
+    given_id = TestId(4)
+    given_pool = TestPool()
+    given_command = DropCommand(given_id)
+    given_pool.register(given_id)
+    given_pool.current_subproblem_id = given_id
+
+    given_command.invoke(given_pool)
+
+    assert given_pool.current_subproblem_id == None
+
+
+def test_dropCommand_invokeWithDifferentSubproblemId_currentSubproblemNotDropped():
+    given_id = TestId(4)
+    current_id = TestId(2)
+    given_pool = TestPool()
+    given_command = DropCommand(given_id)
+    given_pool.register(current_id)
+    given_pool.current_subproblem_id = current_id
+
+    given_command.invoke(given_pool)
+
+    assert given_pool.current_subproblem_id == current_id
+
+
+def test_resultCommand_invokeResultOfNotStartedSubproblemReceived_subproblemIsCompleted():
+    given_id = TestId(4)
+    given_result = TestResult(42)
+    given_pool = TestPool()
+    given_command = ResultCommand(given_id, given_result)
+
+    given_command.invoke(given_pool)
+
+    assert given_id in given_pool.results
+    assert given_pool.results[given_id] == given_result
+
+
+def test_resultCommand_invokeResultOfInProgressSubproblemReceived_subproblemIsCompleted():
+    given_id = TestId(4)
+    given_result = TestResult(42)
+    given_pool = TestPool()
+    given_command = ResultCommand(given_id, given_result)
+    given_pool.register(given_id)
+
+    given_command.invoke(given_pool)
+
+    assert given_id in given_pool.results
+    assert given_pool.results[given_id] == given_result
+
+
+def test_resultCommand_invokeResultOfSubproblemBeingComputedReceived_subproblemIsDroppedAndCompleted():
+    given_id = TestId(4)
+    given_result = TestResult(42)
+    given_pool = TestPool()
+    given_command = ResultCommand(given_id, given_result)
+    given_pool.register(given_id)
+    given_pool.current_subproblem_id = given_id
+
+    given_command.invoke(given_pool)
+
+    assert given_id in given_pool.results
+    assert given_pool.results[given_id] == given_result
+    assert given_pool.current_subproblem_id == None
+
+def test_resultCommand_invokeResultOfSubproblemAlreadyInResultsAndReceivedResultIsDifferent_nothingHappens():
+    given_id = TestId(4)
+    given_result = TestResult(42)
+    current_result = TestResult(16)
+    given_pool = TestPool()
+    given_command = ResultCommand(given_id, given_result)
+    given_pool.register(given_id)
+    given_pool.complete(given_id, current_result)
+
+    given_command.invoke(given_pool)
+
+    assert given_id in given_pool.results
+    assert given_pool.results[given_id] == current_result
