@@ -100,6 +100,11 @@ def main(computation_manager: ComputationManager):
     logger.info('Gracefully stopped.')
 
 
+def requested_subproblem_drop(subproblem, computation_manager) -> bool:
+    return (computation_manager.pool.current_subproblem_id is None
+            and subproblem is not None)
+
+
 def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper) -> Broker:
     logger = get_logger('broker')
     connection = NetworkConnection(connection_settings)
