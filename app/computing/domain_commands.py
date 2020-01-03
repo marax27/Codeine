@@ -51,13 +51,13 @@ class BaseRegisterCommand(DomainCommand):
             result_command = BaseResultCommand(self.identifier, result)
             return [result_command]
 
-        if self.identifier in receiver.in_progress_pool:
-            if self._is_sender_priority_greater() and self.identifier == receiver.current_subproblem_id:
+        if self.identifier in receiver.in_progress_pool and self.identifier == receiver.current_subproblem_id:
+            if self._is_sender_priority_greater():
                 receiver.signal_subproblem_stop()
                 return []
-
-            drop_command = BaseDropCommand(self.identifier)
-            return [drop_command]  
+            else:
+                drop_command = BaseDropCommand(self.identifier)
+                return [drop_command]  
 
         return []
     
