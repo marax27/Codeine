@@ -13,6 +13,7 @@ class ComputationManager:
     def __init__(self, problem: ComputationalProblem):
         self._problem = problem
         self._state = problem.create_state()
+        self._stop_condition = problem.create_stop_condition()
         self.pool = problem.create_subproblem_pool()
 
     def create_random(self) -> Subproblem:
@@ -24,6 +25,9 @@ class ComputationManager:
 
     def handle_completed(self, subproblem: Subproblem):
         self.pool.complete(subproblem.identifier, subproblem.result)
+
+    def stop_condition_is_met(self) -> bool:
+        return self._stop_condition.is_met(self.pool.results)
 
     def all_subproblems_finished(self) -> bool:
         return not (self.pool.not_started_pool or self.pool.in_progress_pool)

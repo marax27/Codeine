@@ -1,6 +1,6 @@
 import random
 from abc import ABC, abstractmethod
-from typing import Optional, Set
+from typing import Dict, Optional, Set
 from app.shared.multithreading import StoppableThread
 
 
@@ -14,6 +14,12 @@ class SubproblemId(ABC):
 
 class SubproblemResult(ABC):
     pass
+
+
+class StopCondition(ABC):
+    @abstractmethod
+    def is_met(self, results: Dict[SubproblemId, SubproblemResult]) -> bool:
+        pass
 
 
 class SubproblemPool(ABC):
@@ -66,6 +72,10 @@ class ComputationalProblem(ABC):
 
     @abstractmethod
     def create_subproblem(self, identifier: SubproblemId, state: State) -> Subproblem:
+        pass
+
+    @abstractmethod
+    def create_stop_condition(self) -> StopCondition:
         pass
 
     result_command_type: type

@@ -2,7 +2,7 @@ import string
 import itertools
 import hashlib
 from dataclasses import dataclass
-from typing import Optional, Set
+from typing import Dict, Optional, Set
 from . import base
 from .domain_commands import create_result_command, create_register_command
 
@@ -32,6 +32,11 @@ class SubproblemResult(base.SubproblemResult):
 
     def __repr__(self) -> str:
         return str(self)
+
+
+class StopCondition(base.StopCondition):
+    def is_met(self, results: Dict[SubproblemId, SubproblemResult]) -> bool:
+        return any(r.result is not None for r in results.values())
 
 
 class SubproblemPool(base.SubproblemPool):
@@ -68,6 +73,9 @@ class ComputationalProblem(base.ComputationalProblem):
 
     def create_subproblem(self, identifier: SubproblemId, state: State) -> Subproblem:
         return Subproblem(identifier, state)
+
+    def create_stop_condition(self) -> StopCondition:
+        return StopCondition()
 
     result_command_type: type = create_result_command(SubproblemId,
                                                       SubproblemResult)
