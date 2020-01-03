@@ -1,4 +1,5 @@
 import sys
+from time import sleep
 from app.shared.networking import NetworkConnection, ConnectionSettings, Packet
 
 
@@ -14,11 +15,9 @@ def main(args):
 
     user_input = ''
     while user_input not in ('exit', 'quit', 'q'):
-        while True:
-            received = netcon.receive()
-            if received is None:
-                break
-            print(f'<! [{received.address}]\n\t{received.data}')
+        show_received(netcon)
+        sleep(0.1)
+        show_received(netcon, '<!')
 
         inp = get_input()
         if inp == '':
@@ -30,6 +29,14 @@ def main(args):
 
     packet = netcon.receive()
     print(packet)
+
+
+def show_received(connection: NetworkConnection, prefix: str = '<:'):
+    while True:
+        received = connection.receive()
+        if received is None:
+            break
+        print(f'{prefix} [{received.address}]\n\t{received.data}')
 
 
 def get_input():
