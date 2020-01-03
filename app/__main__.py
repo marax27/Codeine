@@ -64,7 +64,7 @@ def main(computation_manager: ComputationManager):
                     subproblem = None
 
                 results = computation_manager.pool.results
-                if is_stop_condition_met(results.values()):
+                if computation_manager.stop_condition_is_met():
                     active_mode = False
                     logger.info(f'Stop condition is met: {results}')
                 elif computation_manager.all_subproblems_finished():
@@ -98,15 +98,6 @@ def main(computation_manager: ComputationManager):
         subproblem.join()
 
     logger.info('Gracefully stopped.')
-
-
-def requested_subproblem_drop(subproblem, computation_manager) -> bool:
-    return (computation_manager.pool.current_subproblem_id is None
-            and subproblem is not None)
-
-
-def is_stop_condition_met(results: Iterable[SubproblemResult]) -> bool:
-    return any(r.result is not None for r in results)
 
 
 def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper) -> Broker:

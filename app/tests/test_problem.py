@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Set
 import pytest
-from app.computing.base import SubproblemPool, SubproblemId, SubproblemResult
+from app.computing import base
 from app.computing.problem import Subproblem, State
 
 
@@ -9,22 +9,28 @@ NUMBER_OF_IDENTIFIERS = 3
 
 
 @dataclass(frozen=True)
-class SampleSubproblemId(SubproblemId):
+class SampleSubproblemId(base.SubproblemId):
     value: int
 
 
 @dataclass(frozen=True)
-class SampleSubproblemResult(SubproblemResult):
+class SampleSubproblemResult(base.SubproblemResult):
     value: str
 
 
-class SampleSubproblemPool(SubproblemPool):
+class SampleStopCondition(base.StopCondition):
+    def is_met(self, results: dict) -> bool:
+        values = results.values()
+        return any(v is not None for v in values)
+
+
+class SampleSubproblemPool(base.SubproblemPool):
     def _create_initial_pool(self) -> Set[SampleSubproblemId]:
         return set(map(SampleSubproblemId, range(NUMBER_OF_IDENTIFIERS)))
 
 
 @dataclass(frozen=True)
-class ProblemSubproblemId(SubproblemId):
+class ProblemSubproblemId(base.SubproblemId):
     value: str
 
 
@@ -103,3 +109,16 @@ def test_complete_sampleIdentifier_poolsChangeAsExpected():
     assert identifier not in given_pool.not_started_pool
     assert identifier not in given_pool.in_progress_pool
     assert identifier in given_pool.results
+
+
+@pytest.mark.parametrize('given_results,expected_is_met', (
+    ({1: None, 2: None, 3: 'x'}, True),
+    ({1: 'x', 2: None, 3: None}, True),
+    ({1: None, 2: None, 3: None}, False),
+    ({}, False),
+    ({1: 'x'}, True),
+    ({1: 'x', 2: 'y'}, True)
+))
+def test_isMet_sampleResults_meetExpectation(given_results, expected_is_met):
+    stop_condition = SampleStopCondition()
+    assert stop_condition.is_met(given_results) == expected_is_met
