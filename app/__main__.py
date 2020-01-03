@@ -38,6 +38,10 @@ def main(computation_manager: ComputationManager):
     try:
         while True:
             if active_mode:
+                if requested_subproblem_drop(subproblem, computation_manager):
+                    subproblem.stop()
+                    logger.info(f'Subproblem drop requested.')
+
                 if subproblem is None:
                     try:
                         subproblem = computation_manager.create_random()
@@ -50,11 +54,14 @@ def main(computation_manager: ComputationManager):
                         active_mode = False
                 elif not subproblem.is_alive():
                     identifier = subproblem.identifier
-                    result = subproblem.result
-                    computation_manager.handle_completed(subproblem)
-                    broadcast_result(subproblem, broker)
+                    if computation_manager.pool.current_subproblem_id is None:
+                        logger.info(f'Subproblem #{identifier} has been dropped.')
+                    else:
+                        result = subproblem.result
+                        computation_manager.handle_completed(subproblem)
+                        broadcast_result(subproblem, broker)
+                        logger.info(f'Subproblem #{identifier} has ended (result: {result}).')
                     subproblem = None
-                    logger.info(f'Subproblem #{identifier} has ended (result: {result}).')
 
                 results = computation_manager.pool.results
                 if computation_manager.stop_condition_is_met():
@@ -102,7 +109,8 @@ def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper
 def create_command_mapper() -> CommandMapper:
     return CommandMapper() \
         .register(ResultCommand) \
-        .register(RegisterCommand)
+        .register(RegisterCommand) \
+        .register(DropCommand)
 
 
 def create_command_handler(pool: SubproblemPool) -> CommandHandler:
@@ -120,4 +128,5 @@ if __name__ == '__main__':
     PROBLEM = get_computational_problem()
     ResultCommand = PROBLEM.result_command_type
     RegisterCommand = PROBLEM.register_command_type
+    DropCommand = PROBLEM.drop_command_type
     main(ComputationManager(PROBLEM))
