@@ -1,15 +1,16 @@
 from logging import Logger
 from app.shared.networking import ConnectionSettings, NetworkIO
 from .commands import Command
-from .broker import Broker
+from .broker import Broker, BrokerSettings
 from .commands import CommandMapper
 from .topology import RecipientNotRegisteredError
 
 
 class LoggingBroker(Broker):
-    def __init__(self, connection: NetworkIO, logger: Logger, mapper: CommandMapper):
-        super().__init__(connection, mapper)
+    def __init__(self, connection: NetworkIO, logger: Logger, mapper: CommandMapper, settings: BrokerSettings):
+        super().__init__(connection, mapper, settings)
         self._logger = logger
+        self._logger.info(f'Broker initialized with settings: {settings}')
 
     def run(self):
         self._logger.info('Starting.')

@@ -1,12 +1,13 @@
 from time import sleep
 from queue import Queue, Empty
 from typing import List, Optional, Tuple
+from dataclasses import replace
 import pytest
 from app.shared.networking import Packet, NetworkIO
 from app.messaging.commands import CommandMapper
 from app.messaging.command_handler import Payload
 from app.messaging.topology import ImAliveCommand, NetTopologyCommand
-from app.messaging.broker import Broker
+from app.messaging.broker import Broker, BrokerSettings
 from app.shared.networking import ConnectionSettings
 
 
@@ -44,7 +45,8 @@ class BrokerContext:
     def __init__(self):
         self._mapper = CommandMapper()
         self._connection = NetworkIOMock()
-        self.broker = Broker(self._connection, self._mapper)
+        self._settings = BrokerSettings('1.1.1.1', 999)
+        self.broker = Broker(self._connection, self._mapper, self._settings)
         self.broker.start()
 
     def __del__(self):
@@ -65,6 +67,10 @@ class BrokerContext:
         while not self._connection.outgoing.empty():
             result.append(self._connection.outgoing.get_nowait())
         return result
+
+    def set_imalive_interval(self, interval: float):
+        self._settings = replace(self._settings, imalive_interval=interval)
+        self.broker._settings = self._settings
 
     def send_to_broker(self, packet: Packet):
         self._connection.incoming.put(packet)
@@ -114,11 +120,13 @@ def test_imalive_receiveImalive_sendNettopo(
     context.wait_some()
     outgoing_packets = context.dump_outgoing_packets()
 
-    assert len(outgoing_packets) == 1
-    assert outgoing_packets[0].address == given_address
+    def meets_expectation(packet):
+        command = mapper.map_from_bytes(packet.data)
+        address_match = packet.address == given_address
+        command_match = isinstance(command, NetTopologyCommand)
+        return address_match and command_match
 
-    outgoing_command = mapper.map_from_bytes(outgoing_packets[0].data)
-    assert isinstance(outgoing_command, NetTopologyCommand)
+    assert any(meets_expectation(packet) for packet in outgoing_packets)
 
 
 def test_broadcast_broadcastSampleCommand_commandSentToAllRegisteredAgents(
@@ -198,3 +206,19 @@ def test_discoverNetwork_initializeBroker_imAliveIsBroadcasted(
 
     assert isinstance(packet_data, ImAliveCommand)
     assert packet_address.address == '<broadcast>'
+
+
+def test_periodicalImalive_wait_brokerSendsMultipleImalivePackets(
+        context: BrokerContext,
+        mapper: CommandMapper
+        ):
+    context.set_imalive_interval(0.1)
+    given_agent = ConnectionSettings('1.2.3.4', 1234)
+    context.send_to_broker(get_imalive_packet(given_agent))
+
+    sleep(0.6)
+    outgoing_packets = context.dump_outgoing_packets()
+    commands = [mapper.map_from_bytes(p.data) for p in outgoing_packets]
+    imalive_commands = [c for c in commands if isinstance(c, ImAliveCommand)]
+
+    assert 4 <= len(imalive_commands) <= 6
