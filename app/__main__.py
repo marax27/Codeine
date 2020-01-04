@@ -25,8 +25,6 @@ def main(computation_manager: ComputationManager):
     broker_settings = config.get('Broker').bind_as(BrokerSettings)
     logger = get_logger(__package__)
 
-    print(broker_settings)
-
     mode_name = 'active' if app_settings.active_mode else 'passive'
     logger.info(f'Codeine started in {mode_name} mode.')
 
