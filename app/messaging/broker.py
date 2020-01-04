@@ -1,4 +1,4 @@
-from time import sleep
+from time import sleep, time
 from queue import Queue
 from typing import Iterable, Optional
 from app.shared.multithreading import StoppableThread
@@ -19,6 +19,8 @@ class Broker(StoppableThread):
         self._command_handler = self._create_command_handler()
         self._command_mapper.register(ImAliveCommand)
         self._command_mapper.register(NetTopologyCommand)
+        self._last_imalive_send_time = 0.0
+        self._imalive_sending_interval = 2.0
 
     def get_payloads(self) -> Iterable[Payload]:
         while not self._recv_queue.empty():
@@ -40,6 +42,7 @@ class Broker(StoppableThread):
         while not self.requested_stop():
             self._handle_incoming_packet()
             self._handle_outgoing()
+            self._handle_imalive()
             sleep(0.01)
 
     def _handle_incoming_packet(self):
@@ -63,6 +66,13 @@ class Broker(StoppableThread):
                 self._handle_single_outgoing(payload)
             except RecipientNotRegisteredError:
                 pass
+
+    def _handle_imalive(self):
+        current_time = time()
+        time_since_last_send = current_time - self._last_imalive_send_time
+        if time_since_last_send >= self._imalive_sending_interval:
+            self.broadcast(ImAliveCommand())
+            self._last_imalive_send_time = current_time
 
     def _to_command(self, data: bytes) -> Command:
         return self._command_mapper.map_from_bytes(data)
