@@ -4,9 +4,8 @@ from typing import Iterable, Optional
 from app.shared.multithreading import StoppableThread
 from app.shared.networking import Packet, ConnectionSettings, NetworkIO
 from .commands import CommandMapper, Command
-from .topology import Topology, NetworkCommand, ImAliveCommand, NetTopologyCommand
+from .topology import Topology, NetworkCommand, ImAliveCommand, NetTopologyCommand, RecipientNotRegisteredError
 from .command_handler import CommandHandler, CommandNotRegisteredException, Payload
-from .topology import ImAliveCommand, NetTopologyCommand, RecipientNotRegisteredError
 
 
 class Broker(StoppableThread):
