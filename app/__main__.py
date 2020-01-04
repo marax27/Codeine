@@ -3,7 +3,7 @@ from typing import Iterable, Optional
 from .shared.networking import ConnectionSettings, NetworkConnection
 from .shared.configuration import Configuration
 from .shared.logs import get_logger, initialize
-from .messaging.broker import Broker
+from .messaging.broker import Broker, BrokerSettings
 from .messaging.logging_broker import LoggingBroker
 from .computing.facade import get_computational_problem
 from .computing.base import Subproblem, SubproblemResult, SubproblemPool
@@ -21,15 +21,15 @@ def main(computation_manager: ComputationManager):
 
     config = Configuration(__package__) \
         .add_json_file('config.json')
-    connection_settings = config.get('Connection').bind_as(ConnectionSettings)
     app_settings = config.get('Application').bind_as(ApplicationSettings)
+    broker_settings = config.get('Broker').bind_as(BrokerSettings)
     logger = get_logger(__package__)
 
     mode_name = 'active' if app_settings.active_mode else 'passive'
     logger.info(f'Codeine started in {mode_name} mode.')
 
     handler = create_command_handler(computation_manager.pool)
-    broker = create_broker(connection_settings, create_command_mapper())
+    broker = create_broker(broker_settings, create_command_mapper())
     broker.start()
     broker.discover_network()
     subproblem: Optional[Subproblem] = None
@@ -105,10 +105,10 @@ def requested_subproblem_drop(subproblem, computation_manager) -> bool:
             and subproblem is not None)
 
 
-def create_broker(connection_settings: ConnectionSettings, mapper: CommandMapper) -> Broker:
+def create_broker(broker_settings: BrokerSettings, mapper: CommandMapper) -> Broker:
     logger = get_logger('broker')
-    connection = NetworkConnection(connection_settings)
-    return LoggingBroker(connection, logger, mapper)
+    connection = NetworkConnection(broker_settings.connection)
+    return LoggingBroker(connection, logger, mapper, broker_settings)
 
 
 def create_command_mapper() -> CommandMapper:

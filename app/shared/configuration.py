@@ -51,7 +51,10 @@ class ConfigurationSection:
         raise KeyNotFoundError(key)
 
     def bind_as(self, bind_type: type):
-        return bind_dictionary_to(bind_type, self._configuration)
+        try:
+            return bind_type.from_dict(self._configuration)
+        except Exception:
+            return bind_dictionary_to(bind_type, self._configuration)
 
     def keys(self) -> set:
         return set(self._configuration.keys())
