@@ -61,6 +61,9 @@ class SubproblemPool(ABC):
         assert len(ids) <= 1
         return ids[0] if ids else None
 
+    def get_ids_in_progress_by_address(self, address: ConnectionSettings) -> Set[SubproblemId]:
+        return {k for k, v in self.in_progress_pool.items() if v == address}
+
 
 class Subproblem(StoppableThread):
     def __init__(self, identifier: SubproblemId, state: State):

@@ -118,4 +118,7 @@ class PruneCommand(DomainCommand):
         return 'PRUNE'
 
     def invoke(self, receiver: base.SubproblemPool) -> List[Command]:
+        ids = receiver.get_ids_in_progress_by_address(self.address)
+        for identifier in ids:
+            receiver.revert_in_progress(identifier)
         return []
