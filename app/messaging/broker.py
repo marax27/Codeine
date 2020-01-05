@@ -1,6 +1,6 @@
 from time import sleep, time
 from queue import Queue
-from typing import Iterable, Optional
+from typing import Callable, Iterable, Optional
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 from app.shared.multithreading import StoppableThread
@@ -32,6 +32,7 @@ class Broker(StoppableThread):
         self._command_mapper.register(ImAliveCommand)
         self._command_mapper.register(NetTopologyCommand)
         self._last_imalive_send_time = 0.0
+        self._prune_command_creator = None
 
     def get_payloads(self) -> Iterable[Payload]:
         while not self._recv_queue.empty():
@@ -49,11 +50,15 @@ class Broker(StoppableThread):
     def send(self, payload: Payload):
         self._send_queue.put(payload)
 
+    def on_prune(self, command_creator: Callable[[ConnectionSettings], Command]):
+        self._prune_command_creator = command_creator
+
     def run(self):
         while not self.requested_stop():
             self._handle_incoming_packet()
             self._handle_outgoing()
             self._handle_imalive()
+            self._handle_nonresponding_agents()
             sleep(0.01)
 
     def _handle_incoming_packet(self):
@@ -84,6 +89,13 @@ class Broker(StoppableThread):
         if time_since_last_send >= self._settings.imalive_interval:
             self.broadcast(ImAliveCommand())
             self._last_imalive_send_time = current_time
+
+    def _handle_nonresponding_agents(self):
+        pruned_addresses = self._topology.prune()
+        if self._prune_command_creator is not None:
+            for address in pruned_addresses:
+                command = self._prune_command_creator(address)
+                self._recv_queue.put(Payload(command, None))
 
     def _to_command(self, data: bytes) -> Command:
         return self._command_mapper.map_from_bytes(data)

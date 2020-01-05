@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from dataclasses import dataclass, make_dataclass
 from typing import List, Optional
+from app.shared.networking import ConnectionSettings
 from app.messaging.commands import Command
 import app.computing.base as base
 
@@ -97,3 +98,15 @@ def create_drop_command(identifier_type: type) -> type:
         bases=(BaseDropCommand,),
         frozen=True
     )
+
+
+@dataclass(frozen=True)
+class PruneCommand(DomainCommand):
+    address: ConnectionSettings
+
+    @classmethod
+    def get_identifier(cls) -> str:
+        return 'PRUNE'
+
+    def invoke(self, receiver: base.SubproblemPool) -> List[Command]:
+        return []
