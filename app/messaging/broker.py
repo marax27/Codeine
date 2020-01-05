@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 from app.shared.multithreading import StoppableThread
 from app.shared.networking import Packet, ConnectionSettings, NetworkIO
-from app.shared.time import TimeProvider
+from app.shared.time import TimeoutService
 from .commands import CommandMapper, Command
 from .topology import Topology, NetworkCommand, ImAliveCommand, NetTopologyCommand, RecipientNotRegisteredError
 from .command_handler import CommandHandler, CommandNotRegisteredException, Payload
@@ -24,7 +24,7 @@ class Broker(StoppableThread):
         self._connection = connection
         self._command_mapper = mapper
         self._settings = settings
-        self._topology = Topology(TimeProvider()) \
+        self._topology = Topology(TimeoutService(30.0)) \
             .forbid_local_interfaces_addresses(connection.get_address().port)
         self._send_queue = Queue()
         self._recv_queue = Queue()
