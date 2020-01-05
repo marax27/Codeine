@@ -1,9 +1,9 @@
 from __future__ import annotations
 from abc import abstractmethod
-from time import time
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 from dataclasses import dataclass
 from app.shared.networking import ConnectionSettings, get_local_interfaces_ip_addresses
+from app.shared.time import TimeProvider
 from .commands import Command
 
 
@@ -12,16 +12,17 @@ class AgentState:
     last_connection_time: float
 
     @staticmethod
-    def create() -> AgentState:
-        return AgentState(time())
+    def create(time_value: float) -> AgentState:
+        return AgentState(time_value)
 
 
 class Topology:
     """Stores information about registered agents present in the network."""
 
-    def __init__(self):
+    def __init__(self, time_provider: TimeProvider):
         self._agents: Dict[ConnectionSettings, AgentState] = dict()
         self._forbidden: Set[ConnectionSettings] = set()
+        self._time_provider = time_provider
 
     def with_forbidden(self, address: ConnectionSettings) -> Topology:
         self._forbidden.add(address)
@@ -35,7 +36,8 @@ class Topology:
 
     def add_or_update(self, address: ConnectionSettings):
         if address not in self._forbidden:
-            self._agents[address] = AgentState.create()
+            current_time = self._time_provider.now()
+            self._agents[address] = AgentState.create(current_time)
 
     def add_or_update_many(self, addresses: Iterable[ConnectionSettings]):
         for address in addresses:

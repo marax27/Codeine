@@ -1,5 +1,6 @@
 import pytest
 
+from app.shared.time import TimeProvider
 from app.messaging.topology import Topology, NetTopologyCommand, ImAliveCommand, RecipientNotRegisteredError
 from app.messaging.commands import CommandMapper
 from app.shared.networking import ConnectionSettings
@@ -62,7 +63,7 @@ def test_imaliveMapping_sampleCommand_byteCommandContainsEmptyBrackets():
 
 def test_addOrUpdate_sampleAddress_addressPresentInReturnedAddresses():
     given_address = ConnectionSettings('1.2.3.4', 1234)
-    sut = Topology()
+    sut = Topology(TimeProvider())
 
     sut.add_or_update(given_address)
     assert given_address in sut.get_all_addresses()
@@ -73,7 +74,7 @@ def test_addOrUpdateMany_sampleAddresses_initialAndReturnedAddressesAreEqual():
         ConnectionSettings('1.2.3.4', 1000),
         ConnectionSettings('1.2.3.5', 2000)
     ]
-    sut = Topology()
+    sut = Topology(TimeProvider())
 
     sut.add_or_update_many(given_addresses)
     assert set(sut.get_all_addresses()) == set(given_addresses)
@@ -81,13 +82,13 @@ def test_addOrUpdateMany_sampleAddresses_initialAndReturnedAddressesAreEqual():
 
 def test_withForbidden_addForbiddenAddress_addressNotAdded():
     given_address = ConnectionSettings('1.2.3.4', 1000)
-    sut = Topology().with_forbidden(given_address)
+    sut = Topology(TimeProvider()).with_forbidden(given_address)
     assert given_address not in sut.get_all_addresses()
 
 
 def test_getAddresses_sampleTopology_iterableWithGivenTopology():
     given_address = ConnectionSettings('1.2.3.4', 1000)
-    sut = Topology()
+    sut = Topology(TimeProvider())
 
     sut.add_or_update(given_address)
     assert given_address in sut.get_addresses(given_address)
@@ -95,7 +96,7 @@ def test_getAddresses_sampleTopology_iterableWithGivenTopology():
 
 def test_getAddresses_unexpectedTopology_raise():
     given_address = ConnectionSettings('1.2.3.4', 1000)
-    sut = Topology()
+    sut = Topology(TimeProvider())
 
     with pytest.raises(RecipientNotRegisteredError):
         sut.get_addresses(given_address)
@@ -107,7 +108,7 @@ def test_getAddresses_none_allRegisteredAddresses():
         ConnectionSettings('1.2.3.5', 2000)
     ]
 
-    sut = Topology()
+    sut = Topology(TimeProvider())
     sut.add_or_update_many(given_addresses)
 
     assert all(addr in sut.get_addresses(None) for addr in given_addresses)
