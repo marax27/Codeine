@@ -7,6 +7,7 @@
             "address": "0.0.0.0",
             "port": 40000
         },
-        "imalive_interval": 10.0
+        "imalive_interval": 10.0,
+        "agent_timeout": 30.0
     }
 }

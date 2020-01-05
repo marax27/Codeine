@@ -7,7 +7,7 @@ from .messaging.broker import Broker, BrokerSettings
 from .messaging.logging_broker import LoggingBroker
 from .computing.facade import get_computational_problem
 from .computing.base import Subproblem, SubproblemResult, SubproblemPool
-from .computing.domain_commands import DomainCommand
+from .computing.domain_commands import DomainCommand, PruneCommand
 from .app import ApplicationSettings, ComputationManager, EmptySubproblemPoolError
 from .messaging.commands import CommandMapper
 from .messaging.command_handler import CommandHandler, CommandNotRegisteredException
@@ -108,7 +108,9 @@ def requested_subproblem_drop(subproblem, computation_manager) -> bool:
 def create_broker(broker_settings: BrokerSettings, mapper: CommandMapper) -> Broker:
     logger = get_logger('broker')
     connection = NetworkConnection(broker_settings.connection)
-    return LoggingBroker(connection, logger, mapper, broker_settings)
+    broker = LoggingBroker(connection, logger, mapper, broker_settings)
+    broker.on_prune(lambda addr: PruneCommand(addr))
+    return broker
 
 
 def create_command_mapper() -> CommandMapper:

@@ -45,7 +45,7 @@ class BrokerContext:
     def __init__(self):
         self._mapper = CommandMapper()
         self._connection = NetworkIOMock()
-        self._settings = BrokerSettings('1.1.1.1', 999)
+        self._settings = BrokerSettings('1.1.1.1', 999, 999)
         self.broker = Broker(self._connection, self._mapper, self._settings)
         self.broker.start()
 
