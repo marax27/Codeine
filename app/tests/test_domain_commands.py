@@ -43,6 +43,22 @@ def test_resultCommand_invokeUponSamplePool_resultIsInPool():
     given_command.invoke(given_pool)
 
     assert given_pool.results[given_id] == given_result
+    assert given_id not in given_pool.not_started_pool
+    assert given_id not in given_pool.in_progress_pool
+
+
+def test_resultCommand_invokeUponSubproblemThatAlreadyStarted_resultIsInPool():
+    given_id = TestId(4)
+    given_result = TestResult(999)
+    given_command = ResultCommand(given_id, given_result)
+    given_pool = TestPool()
+    given_pool.register(given_id)
+
+    given_command.invoke(given_pool)
+
+    assert given_pool.results[given_id] == given_result
+    assert given_id not in given_pool.not_started_pool
+    assert given_id not in given_pool.in_progress_pool
 
 
 def test_registerCommand_invokeNoSubproblemBeingComputed_returnsEmptyList():
@@ -53,6 +69,7 @@ def test_registerCommand_invokeNoSubproblemBeingComputed_returnsEmptyList():
     register_invoke_output = given_command.invoke(given_pool)
 
     assert len(register_invoke_output) == 0
+    assert given_id in given_pool.in_progress_pool
 
 
 def test_registerCommand_invokeWithDifferentSubproblemInProgress_returnsEmptyList():
@@ -61,11 +78,12 @@ def test_registerCommand_invokeWithDifferentSubproblemInProgress_returnsEmptyLis
     given_pool = TestPool()
     given_command = RegisterCommand(given_id)
     given_pool.register(current_id)
-    given_pool.current_subproblem_id = current_id
 
     register_invoke_output = given_command.invoke(given_pool)
 
     assert len(register_invoke_output) == 0
+    assert given_id in given_pool.in_progress_pool
+    assert current_id in given_pool.in_progress_pool
 
 
 def test_registerCommand_invokeSenderHasGreaterPriority_returnsEmptyList():
@@ -73,7 +91,6 @@ def test_registerCommand_invokeSenderHasGreaterPriority_returnsEmptyList():
     given_pool = TestPool()
     given_command = RegisterCommand(given_id)
     given_pool.register(given_id)
-    given_pool.current_subproblem_id = given_id
 
     sender_address = ConnectionSettingsFactory.higher_priority_address()
     local_address = ConnectionSettingsFactory.lower_priority_address()
@@ -82,18 +99,20 @@ def test_registerCommand_invokeSenderHasGreaterPriority_returnsEmptyList():
     register_invoke_output = given_command.invoke(given_pool)
 
     assert len(register_invoke_output) == 0
-    assert given_pool.current_subproblem_id == None
+    assert given_pool.get_id_in_progress_locally() is None
+    assert given_id in given_pool.in_progress_pool
 
 
 def test_registerCommand_invokeSubproblemInProgressOnDifferentAgent_returnsEmptyList():
     given_id = TestId(4)
     given_pool = TestPool()
     given_command = RegisterCommand(given_id)
-    given_pool.register(given_id)
+    given_pool.register(given_id, ConnectionSettings('1.2.3.4', 9999))
 
     register_invoke_output = given_command.invoke(given_pool)
 
     assert len(register_invoke_output) == 0
+    assert given_id in given_pool.in_progress_pool
 
 
 def test_registerCommand_invokeWithSubproblemAlreadyInResults_returnsResult():
@@ -116,7 +135,6 @@ def test_registerCommand_invokeWithSubproblemInProgress_returnsDrop():
     given_pool = TestPool()
     given_command = RegisterCommand(given_id)
     given_pool.register(given_id)
-    given_pool.current_subproblem_id = given_id
 
     sender_address = ConnectionSettingsFactory.lower_priority_address()
     local_address = ConnectionSettingsFactory.higher_priority_address()
@@ -134,11 +152,10 @@ def test_dropCommand_invokeWithCurrentSubproblemId_currentSubproblemDropped():
     given_pool = TestPool()
     given_command = DropCommand(given_id)
     given_pool.register(given_id)
-    given_pool.current_subproblem_id = given_id
 
     given_command.invoke(given_pool)
 
-    assert given_pool.current_subproblem_id == None
+    assert given_pool.get_id_in_progress_locally() is None
 
 
 def test_dropCommand_invokeWithDifferentSubproblemId_currentSubproblemNotDropped():
@@ -147,11 +164,10 @@ def test_dropCommand_invokeWithDifferentSubproblemId_currentSubproblemNotDropped
     given_pool = TestPool()
     given_command = DropCommand(given_id)
     given_pool.register(current_id)
-    given_pool.current_subproblem_id = current_id
 
     given_command.invoke(given_pool)
 
-    assert given_pool.current_subproblem_id == current_id
+    assert given_pool.get_id_in_progress_locally() == current_id
 
 
 def test_resultCommand_invokeResultOfNotStartedSubproblemReceived_subproblemIsCompleted():
@@ -171,7 +187,7 @@ def test_resultCommand_invokeResultOfInProgressSubproblemReceived_subproblemIsCo
     given_result = TestResult(42)
     given_pool = TestPool()
     given_command = ResultCommand(given_id, given_result)
-    given_pool.register(given_id)
+    given_pool.register(given_id, ConnectionSettings('1.1.1.1', 9999))
 
     given_command.invoke(given_pool)
 
@@ -185,13 +201,12 @@ def test_resultCommand_invokeResultOfSubproblemBeingComputedReceived_subproblemI
     given_pool = TestPool()
     given_command = ResultCommand(given_id, given_result)
     given_pool.register(given_id)
-    given_pool.current_subproblem_id = given_id
 
     given_command.invoke(given_pool)
 
     assert given_id in given_pool.results
     assert given_pool.results[given_id] == given_result
-    assert given_pool.current_subproblem_id == None
+    assert given_pool.get_id_in_progress_locally() is None
 
 def test_resultCommand_invokeResultOfSubproblemAlreadyInResultsAndReceivedResultIsDifferent_nothingHappens():
     given_id = TestId(4)
@@ -199,7 +214,7 @@ def test_resultCommand_invokeResultOfSubproblemAlreadyInResultsAndReceivedResult
     current_result = TestResult(16)
     given_pool = TestPool()
     given_command = ResultCommand(given_id, given_result)
-    given_pool.register(given_id)
+    given_pool.register(given_id, ConnectionSettings('1.1.1.1', 9999))
     given_pool.complete(given_id, current_result)
 
     given_command.invoke(given_pool)

@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from typing import Set
 import pytest
+from app.shared.networking import ConnectionSettings
 from app.computing import base
 from app.computing.problem import Subproblem, State
 
 
-NUMBER_OF_IDENTIFIERS = 3
+NUMBER_OF_IDENTIFIERS = 9
 
 
 @dataclass(frozen=True)
@@ -122,3 +123,17 @@ def test_complete_sampleIdentifier_poolsChangeAsExpected():
 def test_isMet_sampleResults_meetExpectation(given_results, expected_is_met):
     stop_condition = SampleStopCondition()
     assert stop_condition.is_met(given_results) == expected_is_met
+
+
+def test_getIdsInProgressByAddress_samplePool_meetExpectations():
+    given_address = ConnectionSettings('1.2.3.4', 123)
+    
+    given_pool = SampleSubproblemPool()
+    given_pool.register(SampleSubproblemId(0))
+    given_pool.register(SampleSubproblemId(2), given_address)
+    given_pool.register(SampleSubproblemId(4), given_address)
+
+    actual_ids = given_pool.get_ids_in_progress_by_address(given_address)
+    expected_ids = {SampleSubproblemId(2), SampleSubproblemId(4)}
+
+    assert actual_ids == expected_ids

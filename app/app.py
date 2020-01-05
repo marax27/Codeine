@@ -21,7 +21,6 @@ class ComputationManager:
             raise EmptySubproblemPoolError()
         identifier = self.pool.pop_identifier()
         self.pool.register(identifier)
-        self.pool.current_subproblem_id = identifier
         return self._problem.create_subproblem(identifier, self._state)
 
     def handle_completed(self, subproblem: Subproblem):

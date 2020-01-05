@@ -52,16 +52,24 @@ class BaseRegisterCommand(DomainCommand):
             result_command = BaseResultCommand(self.identifier, result)
             return [result_command]
 
-        if self.identifier in receiver.in_progress_pool and self.identifier == receiver.current_subproblem_id:
-            if self._is_sender_priority_greater():
-                receiver.signal_subproblem_stop()
-                return []
+        if self.identifier in receiver.in_progress_pool:
+            if self.identifier == receiver.get_id_in_progress_locally():
+                if self._is_sender_priority_greater():
+                    self._update_subproblem_owner(receiver)
+                    return []
+                else:
+                    drop_command = BaseDropCommand(self.identifier)
+                    return [drop_command]
             else:
-                drop_command = BaseDropCommand(self.identifier)
-                return [drop_command]
+                return []
 
+        receiver.register(self.identifier, self.context.sender_address)
         return []
-    
+
+    def _update_subproblem_owner(self, pool: base.SubproblemPool):
+        sender = self.context.sender_address
+        pool.update_worker_address(self.identifier, sender)
+
     def _is_sender_priority_greater(self):
         sender_priority = self.context.sender_address.get_priority()
         receiver_priority = self.context.local_address.get_priority()
@@ -86,8 +94,9 @@ class BaseDropCommand(DomainCommand):
         return 'DROP'
 
     def invoke(self, receiver: base.SubproblemPool) -> List[Command]:
-        if self.identifier in receiver.in_progress_pool and self.identifier == receiver.current_subproblem_id:
-            receiver.signal_subproblem_stop()
+        if self.identifier == receiver.get_id_in_progress_locally():
+            sender = self.context.sender_address
+            receiver.update_worker_address(self.identifier, sender)
         return []
 
 
@@ -109,4 +118,7 @@ class PruneCommand(DomainCommand):
         return 'PRUNE'
 
     def invoke(self, receiver: base.SubproblemPool) -> List[Command]:
+        ids = receiver.get_ids_in_progress_by_address(self.address)
+        for identifier in ids:
+            receiver.revert_in_progress(identifier)
         return []

@@ -11,6 +11,7 @@ from .computing.domain_commands import DomainCommand, PruneCommand
 from .app import ApplicationSettings, ComputationManager, EmptySubproblemPoolError
 from .messaging.commands import CommandMapper
 from .messaging.command_handler import CommandHandler, CommandNotRegisteredException
+from time import time
 
 
 ResultCommand: type = None
@@ -34,10 +35,21 @@ def main(computation_manager: ComputationManager):
     broker.discover_network()
     subproblem: Optional[Subproblem] = None
     active_mode = app_settings.active_mode
+    any_free_subproblems = True
+    ttt = time()
 
     try:
         while True:
-            if active_mode:
+            if computation_manager.pool.not_started_pool:
+                any_free_subproblems = True
+
+            if time() - ttt > 5:
+                logger.info(f'~!! {computation_manager.pool.not_started_pool}')
+                logger.info(f'!~! {computation_manager.pool.in_progress_pool}')
+                logger.info(f'!!~ {computation_manager.pool.results}')
+                ttt = time()
+
+            if active_mode and any_free_subproblems:
                 if requested_subproblem_drop(subproblem, computation_manager):
                     subproblem.stop()
                     logger.info(f'Subproblem drop requested.')
@@ -51,10 +63,10 @@ def main(computation_manager: ComputationManager):
                         logger.info(f'Subproblem #{identifier} has started.')
                     except EmptySubproblemPoolError:
                         logger.warning('No more subproblems to take.')
-                        active_mode = False
+                        any_free_subproblems = False
                 elif not subproblem.is_alive():
                     identifier = subproblem.identifier
-                    if computation_manager.pool.current_subproblem_id is None:
+                    if computation_manager.pool.get_id_in_progress_locally() is None:
                         logger.info(f'Subproblem #{identifier} has been dropped.')
                     else:
                         result = subproblem.result
@@ -68,7 +80,7 @@ def main(computation_manager: ComputationManager):
                     active_mode = False
                     logger.info(f'Stop condition is met: {results}')
                 elif computation_manager.all_subproblems_finished():
-                    active_mode = False
+                    any_free_subproblems = False
                     logger.info(f'All subproblems finished: {results}')
 
             for payload in broker.get_payloads():
@@ -101,7 +113,7 @@ def main(computation_manager: ComputationManager):
 
 
 def requested_subproblem_drop(subproblem, computation_manager) -> bool:
-    return (computation_manager.pool.current_subproblem_id is None
+    return (computation_manager.pool.get_id_in_progress_locally() is None
             and subproblem is not None)
 
 
