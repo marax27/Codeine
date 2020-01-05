@@ -16,6 +16,7 @@ from .command_handler import CommandHandler, CommandNotRegisteredException, Payl
 class BrokerSettings:
     connection: ConnectionSettings
     imalive_interval: float
+    agent_timeout: float
 
 
 class Broker(StoppableThread):
@@ -24,7 +25,7 @@ class Broker(StoppableThread):
         self._connection = connection
         self._command_mapper = mapper
         self._settings = settings
-        self._topology = Topology(TimeoutService(30.0)) \
+        self._topology = Topology(TimeoutService(settings.agent_timeout)) \
             .forbid_local_interfaces_addresses(connection.get_address().port)
         self._send_queue = Queue()
         self._recv_queue = Queue()
