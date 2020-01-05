@@ -25,7 +25,7 @@ class StopCondition(ABC):
 class SubproblemPool(ABC):
     def __init__(self):
         self.not_started_pool = self._create_initial_pool()
-        self.in_progress_pool = set()
+        self.in_progress_pool = dict()
         self.results = dict()
         self.current_subproblem_id: SubproblemId = None
 
@@ -38,17 +38,17 @@ class SubproblemPool(ABC):
 
     def register(self, identifier: SubproblemId):
         self.not_started_pool.remove(identifier)
-        self.in_progress_pool.add(identifier)
+        self.in_progress_pool[identifier] = None
 
     def revert_in_progress(self, identifier: SubproblemId):
-        self.in_progress_pool.remove(identifier)
+        self.in_progress_pool.pop(identifier)
         self.not_started_pool.add(identifier)
 
     def signal_subproblem_stop(self):
         self.current_subproblem_id = None
 
     def complete(self, identifier: SubproblemId, result: SubproblemResult):
-        self.in_progress_pool.remove(identifier)
+        self.in_progress_pool.pop(identifier)
         if identifier == self.current_subproblem_id:
             self.signal_subproblem_stop()
         if identifier not in self.results:
