@@ -54,7 +54,7 @@ def main(computation_manager: ComputationManager):
                         active_mode = False
                 elif not subproblem.is_alive():
                     identifier = subproblem.identifier
-                    if computation_manager.pool.current_subproblem_id is None:
+                    if computation_manager.pool.get_id_in_progress_locally() is None:
                         logger.info(f'Subproblem #{identifier} has been dropped.')
                     else:
                         result = subproblem.result
@@ -101,7 +101,7 @@ def main(computation_manager: ComputationManager):
 
 
 def requested_subproblem_drop(subproblem, computation_manager) -> bool:
-    return (computation_manager.pool.current_subproblem_id is None
+    return (computation_manager.pool.get_id_in_progress_locally() is None
             and subproblem is not None)
 
 
