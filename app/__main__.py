@@ -47,8 +47,12 @@ def main(computation_manager: ComputationManager):
                 logger.info(f'~!! {computation_manager.pool.not_started_pool}')
                 logger.info(f'!~! {computation_manager.pool.in_progress_pool}')
                 logger.info(f'!!~ {computation_manager.pool.results}')
-                ttt = time()
+                broker.discover_network()
 
+                data = tuple((k, v) for k, v in computation_manager.pool.results.items())
+                broker.broadcast(ProgressCommand(data))
+                ttt = time()
+            
             if active_mode and any_free_subproblems:
                 if requested_subproblem_drop(subproblem, computation_manager):
                     subproblem.stop()
@@ -129,7 +133,8 @@ def create_command_mapper() -> CommandMapper:
     return CommandMapper() \
         .register(ResultCommand) \
         .register(RegisterCommand) \
-        .register(DropCommand)
+        .register(DropCommand) \
+        .register(ProgressCommand)
 
 
 def create_command_handler(pool: SubproblemPool) -> CommandHandler:
@@ -148,4 +153,5 @@ if __name__ == '__main__':
     ResultCommand = PROBLEM.result_command_type
     RegisterCommand = PROBLEM.register_command_type
     DropCommand = PROBLEM.drop_command_type
+    ProgressCommand = PROBLEM.progress_command_type
     main(ComputationManager(PROBLEM))

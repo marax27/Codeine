@@ -97,3 +97,4 @@ class ComputationalProblem(ABC):
     result_command_type: type
     register_command_type: type
     drop_command_type: type
+    progress_command_type: type

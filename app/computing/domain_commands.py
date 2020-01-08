@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass, make_dataclass
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from app.shared.networking import ConnectionSettings
 from app.messaging.commands import Command
 import app.computing.base as base
@@ -105,6 +105,29 @@ def create_drop_command(identifier_type: type) -> type:
         'DropCommand',
         (('identifier', identifier_type),),
         bases=(BaseDropCommand,),
+        frozen=True
+    )
+
+
+@dataclass(frozen=True)
+class BaseProgressCommand(DomainCommand):
+    computed: Tuple[Tuple[base.SubproblemId, base.SubproblemResult], ...]
+
+    @classmethod
+    def get_identifier(cls) -> str:
+        return 'PROGRESS'
+
+    def invoke(self, receiver: base.SubproblemPool) -> List[Command]:
+        for identifier, result in self.computed:
+            receiver.complete(identifier, result)
+        return []
+
+
+def create_progress_command(identifier_type: type, result_type: type) -> type:
+    return make_dataclass(
+        'ProgressCommand',
+        (('computed', Tuple[Tuple[identifier_type, result_type], ...]),),
+        bases=(BaseProgressCommand,),
         frozen=True
     )
 
