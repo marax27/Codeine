@@ -46,7 +46,7 @@ def main(computation_manager: ComputationManager):
             if time() - ttt > 5:
                 display_pool(computation_manager.pool, logger)
                 broker.discover_network()
-
+ 
                 broker.broadcast(ProgressCommand(*computation_manager.get_progress()))
                 ttt = time()
             
