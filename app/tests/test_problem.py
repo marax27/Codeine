@@ -37,11 +37,13 @@ class ProblemSubproblemId(base.SubproblemId):
 
 def test_subproblem_computing_findingAnswerShort():
     answer_id = ProblemSubproblemId("k")
-    state = State("aff975c55e20db44e643411216161ec943cbb0c3")
+    #state = State("aff975c55e20db44e643411216161ec943cbb0c3") #for password "kacper"
+    state = State("8c8b31cb137cfa565cc6057b4c4e0e9f04305ac2") #for password "kacpi4"
     subproblem = Subproblem(answer_id, state)
     subproblem.run()
 
-    assert subproblem.result.result == 'kacper'
+    #assert subproblem.result.result == 'kacper'
+    assert subproblem.result.result == 'kacpi4'
 
 
 def test_SubproblemPool_creation_expectedElementsInPool():

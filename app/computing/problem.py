@@ -41,16 +41,16 @@ class StopCondition(base.StopCondition):
 
 class SubproblemPool(base.SubproblemPool):
     def _create_initial_pool(self) -> Set[SubproblemResult]:
-        prefixes = itertools.product(string.ascii_lowercase,
-                                     repeat=1)
+        prefixes = itertools.product(string.ascii_lowercase + string.digits,
+                                     repeat=2)
         return set(map(SubproblemId, map(''.join, prefixes)))
 
 
 class Subproblem(base.Subproblem):
     def run(self):
         self.result = SubproblemResult(None)
-        for suffix in map(''.join, itertools.product(string.ascii_lowercase,
-                          repeat=5)):
+        for suffix in map(''.join, itertools.product(string.ascii_lowercase + string.digits,
+                          repeat=4)):
             if self.requested_stop():
                 break
             word = self.identifier.value + suffix
@@ -68,8 +68,8 @@ class ComputationalProblem(base.ComputationalProblem):
         return SubproblemPool()
 
     def create_state(self) -> State:
-        #return State("8c8b31cb137cfa565cc6057b4c4e0e9f04305ac2") #for password "kacpi4"
-        return State("aff975c55e20db44e643411216161ec943cbb0c3") #for password "kacper"
+        return State("8c8b31cb137cfa565cc6057b4c4e0e9f04305ac2") #for password "kacpi4"
+        #return State("aff975c55e20db44e643411216161ec943cbb0c3") #for password "kacper"
 
     def create_subproblem(self, identifier: SubproblemId, state: State) -> Subproblem:
         return Subproblem(identifier, state)
