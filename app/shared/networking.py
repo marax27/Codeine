@@ -85,7 +85,8 @@ class NetworkConnection(NetworkIO):
         except BlockingIOError:
             return None
         except OSError as exc:
-            raise ReadError(exc.errno)
+            if exc.errno != 10054:
+                raise ReadError(exc.errno)
 
     def _bind_socket(self):
         self._socket.bind(self._connection_settings.to_tuple())
