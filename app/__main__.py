@@ -44,7 +44,7 @@ def main(computation_manager: ComputationManager):
                 any_free_subproblems = True
 
             if time() - ttt > 5:
-                #logger.info(f'~!! {computation_manager.pool.not_started_pool}')
+                logger.info(f'~!! {computation_manager.pool.not_started_pool}')
                 logger.info(f'!~! {computation_manager.pool.in_progress_pool}')
                 logger.info(f'!!~ {computation_manager.pool.results}')
                 ttt = time()

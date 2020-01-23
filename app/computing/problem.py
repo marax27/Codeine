@@ -42,7 +42,7 @@ class StopCondition(base.StopCondition):
 class SubproblemPool(base.SubproblemPool):
     def _create_initial_pool(self) -> Set[SubproblemResult]:
         prefixes = itertools.product(string.ascii_lowercase + string.digits,
-                                     repeat=2)
+                                     repeat=1)
         return set(map(SubproblemId, map(''.join, prefixes)))
 
 
@@ -50,7 +50,7 @@ class Subproblem(base.Subproblem):
     def run(self):
         self.result = SubproblemResult(None)
         for suffix in map(''.join, itertools.product(string.ascii_lowercase + string.digits,
-                          repeat=4)):
+                          repeat=5)):
             if self.requested_stop():
                 break
             word = self.identifier.value + suffix
