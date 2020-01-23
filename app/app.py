@@ -1,6 +1,7 @@
+from typing import Tuple, Iterable
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
-from app.computing.base import Subproblem, ComputationalProblem
+from app.computing.base import Subproblem, SubproblemId, SubproblemResult, ComputationalProblem
 
 
 @dataclass_json
@@ -31,6 +32,10 @@ class ComputationManager:
 
     def all_subproblems_finished(self) -> bool:
         return not (self.pool.not_started_pool or self.pool.in_progress_pool)
+
+    def get_progress(self) -> Tuple[Iterable[SubproblemId], Iterable[SubproblemResult]]:
+        keys, values = self.pool.results.keys(), self.pool.results.values()
+        return tuple(keys), tuple(values)
 
 
 class EmptySubproblemPoolError(Exception):

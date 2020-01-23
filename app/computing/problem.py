@@ -4,7 +4,7 @@ import hashlib
 from dataclasses import dataclass
 from typing import Dict, Optional, Set
 from . import base
-from .domain_commands import create_drop_command, create_result_command, create_register_command
+from .domain_commands import create_drop_command, create_result_command, create_register_command, create_progress_command
 
 
 @dataclass(frozen=True)
@@ -81,3 +81,4 @@ class ComputationalProblem(base.ComputationalProblem):
                                                       SubproblemResult)
     register_command_type: type = create_register_command(SubproblemId)
     drop_command_type: type = create_drop_command(SubproblemId)
+    progress_command_type: type = create_progress_command(SubproblemId, SubproblemResult)
