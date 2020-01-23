@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from dataclasses_json import dataclass_json
 from dataclasses import dataclass, make_dataclass
 from typing import List, Optional, Tuple
 from app.shared.networking import ConnectionSettings
@@ -111,25 +112,35 @@ def create_drop_command(identifier_type: type) -> type:
 
 @dataclass(frozen=True)
 class BaseProgressCommand(DomainCommand):
-    computed: Tuple[Tuple[base.SubproblemId, base.SubproblemResult], ...]
+    ids: Tuple[base.SubproblemId, ...]
+    results: Tuple[base.SubproblemResult, ...]
 
     @classmethod
     def get_identifier(cls) -> str:
         return 'PROGRESS'
 
     def invoke(self, receiver: base.SubproblemPool) -> List[Command]:
-        for identifier, result in self.computed:
-            receiver.complete(identifier, result)
+        if len(self.ids) != len(self.results):
+            raise ValueError(f'Command does not have the same number of IDs and results.')
+
+        for identifier, result in zip(self.ids, self.results):
+            if identifier not in receiver.results:
+                if identifier not in receiver.in_progress_pool:
+                    receiver.register(identifier)
+                receiver.complete(identifier, result)
         return []
 
 
 def create_progress_command(identifier_type: type, result_type: type) -> type:
-    return make_dataclass(
+    return dataclass_json(make_dataclass(
         'ProgressCommand',
-        (('computed', Tuple[Tuple[identifier_type, result_type], ...]),),
+        (
+            ('ids', Tuple[identifier_type, ...]),
+            ('results', Tuple[result_type, ...])
+        ),
         bases=(BaseProgressCommand,),
         frozen=True
-    )
+    ))
 
 
 @dataclass(frozen=True)

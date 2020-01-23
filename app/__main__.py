@@ -49,8 +49,7 @@ def main(computation_manager: ComputationManager):
                 logger.info(f'!!~ {computation_manager.pool.results}')
                 broker.discover_network()
 
-                data = tuple((k, v) for k, v in computation_manager.pool.results.items())
-                broker.broadcast(ProgressCommand(data))
+                broker.broadcast(ProgressCommand(*computation_manager.get_progress()))
                 ttt = time()
             
             if active_mode and any_free_subproblems:
