@@ -44,9 +44,7 @@ def main(computation_manager: ComputationManager):
                 any_free_subproblems = True
 
             if time() - ttt > 5:
-                logger.info(f'~!! {computation_manager.pool.not_started_pool}')
-                logger.info(f'!~! {computation_manager.pool.in_progress_pool}')
-                logger.info(f'!!~ {computation_manager.pool.results}')
+                display_pool(computation_manager.pool, logger)
                 broker.discover_network()
 
                 broker.broadcast(ProgressCommand(*computation_manager.get_progress()))
@@ -144,6 +142,12 @@ def create_command_handler(pool: SubproblemPool) -> CommandHandler:
 def broadcast_result(subproblem: Subproblem, broker: Broker):
     command = ResultCommand(subproblem.identifier, subproblem.result)
     broker.broadcast(command)
+
+
+def display_pool(pool: SubproblemPool, logger):
+    logger.info(f'[Not started] {pool.not_started_pool}')
+    logger.info(f'[In progress] {pool.in_progress_pool}')
+    logger.info(f'     [Solved] {pool.results}')
 
 
 if __name__ == '__main__':
