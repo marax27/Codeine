@@ -13,9 +13,9 @@
 \usepackage{subcaption}
 \usepackage{graphicx}
 \usepackage{verbatim}
-
 \usepackage{listings}
 \usepackage{color}
+\usepackage{epstopdf}
 \lstset{literate=%
 {ą}{{\k{a}}}1 {ć}{{\'c}}1 {ę}{{\k{e}}}1 {ł}{{\l{}}}1 {ń}{{\'n}}1 {ó}{{\'o}}1 {ś}{{\'s}}1 {ż}{{\.z}}1 {ź}{{\'z}}1 {Ą}{{\k{A}}}1 {Ć}{{\'C}}1 {Ę}{{\k{E}}}1 {Ł}{{\L{}}}1 {Ń}{{\'N}}1 {Ó}{{\'O}}1 {Ś}{{\'S}}1 {Ż}{{\.Z}}1 {Ź}{{\'Z}}1 }
 
@@ -73,39 +73,45 @@
     \item Every subproblem can be solved
 \end{itemize}
 
-\section{Networking}
-\subsection{Packet template}
-\begin{verbatim}
-0                   1
-0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|   Identifier  |   Checksum    |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                               |
-|             data              |
-|                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-\end{verbatim}
-
-\subsection{Packets}
+\section{Commands}
+\subsection{Identifiers}
+\begin{itemize}
+    \item ImAliveCommand - IMALIVE
+    \item NetTopologyCommand - NETTOPO
+    \item BaseRegisterCommand - REGISTER
+    \item BaseDropCommand - DROP
+    \item BaseResultCommand - RESULT
+    \item BaseProgressCommand - PROGRESS
+    \item BasePruneCommand - PRUNE
+\end{itemize}
+\subsection{Networking commands}
 \begin{itemize}
     \item Topology discovery, registering agents
     \begin{itemize}
-        \item IMALIVE - send empty packet informing that agent is in the network \verb!<>!
-        \item TOPOLOGY - send computational network topology \verb!<agent[]>!
+        \item ImAliveCommand - send empty command informing that agent is in the network \verb!<>!
+        \item NetTopologyCommand - send computational network topology \verb!<agent[]>!
     \end{itemize}
+\end{itemize}
+\subsection{Domain commands}
+All listed domain commands, except for PruneCommand, must be inherited.
+\begin{itemize}
     \item Subproblem assignment
     \begin{itemize}
-        \item REGISTER - register new subproblem \verb!<subproblem_id>!
-        \item DROP - stop working on this subproblem \verb!<subproblem_id>!
+        \item BaseRegisterCommand - register new subproblem \verb!<subproblem_id>!
+        \item BaseDropCommand - stop working on this subproblem \verb!<subproblem_id>!
     \end{itemize}
     \item Result distribution
     \begin{itemize}
-        \item RESULT - send subproblem result \verb!<subproblem_id, subproblem_result>!
+        \item BaseResultCommand - send subproblem result \verb!<subproblem_id, subproblem_result>!
+        \item BaseProgressCommand - send all owned subproblem results \verb!<subproblem_id[], subproblem_result[]!
+    \end{itemize}
+    \item Subproblem freeing
+    \begin{itemize}
+        \item PruneCommand - free subproblem IDs of removed agents \verb!<agent>!
     \end{itemize}
 \end{itemize}
 
-\subsection{Rules}
+\subsection{Command response rules}
 Unless stated otherwise, broadcast concerns broadcasting messages to all agents registered in an agent's network topology (computational network broadcast). \\\\
 \# - computational network broadcast\\
 * - LAN broadcast
@@ -114,10 +120,14 @@ Unless stated otherwise, broadcast concerns broadcasting messages to all agents 
     \item \#{}IMALIVE $\rightarrow$ $\varnothing$
     \item \#{}REGISTER $\rightarrow$ DROP $\vert$ RESULT
     \item \#{}RESULT $\rightarrow$ $\varnothing$
+    \item \#{}PROGRESS $\rightarrow$ $\varnothing$
 \end{itemize}
 
-\subsection{Network scenarios}
-\subsubsection{Scenario 1}
+\section{Network scenarios}
+\newcounter{scenarioCounter}
+\setcounter{scenarioCounter}{1}
+
+\subsubsection{Scenario \arabic{scenarioCounter}}
 \noindent\textbf{Story:} \\
 Agent tries to join the computational network right after launching Codeine. \\\\
 \textbf{Prerequisites:}
@@ -126,17 +136,18 @@ Agent tries to join the computational network right after launching Codeine. \\\
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent broadcasts IMALIVE packet to all present in LAN.
+    \item Agent broadcasts IMALIVE command to all present in LAN.
     \item Agent starts calculations.
-    \item Every other agent already in the computational network replies with TOPOLOGY packet.
-    \item Agent registers the computational network. End of Scenario 1.
+    \item Every other agent already in the computational network replies with TOPOLOGY command.
+    \item Agent registers the computational network. End of Scenario \arabic{scenarioCounter}.
 \end{enumerate}
 \textbf{Scenario extensions:}
 \begin{itemize}
-    \item[3a.] There is no response from the network. End of Scenario 1.
+    \item[3a.] There is no response from the network. End of Scenario \arabic{scenarioCounter}.
 \end{itemize}
+\stepcounter{scenarioCounter}
 
-\subsubsection{Scenario 2}
+\subsubsection{Scenario \arabic{scenarioCounter}}
 \noindent\textbf{Story:} \\
 Agent periodically informs the computational network that he's still alive. \\\\
 \textbf{Prerequisites:}
@@ -145,10 +156,26 @@ Agent periodically informs the computational network that he's still alive. \\\\
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent broadcasts IMALIVE packet. End of Scenario 2.
+    \item Agent broadcasts IMALIVE command. End of Scenario \arabic{scenarioCounter}.
 \end{enumerate}
+\stepcounter{scenarioCounter}
 
-\subsubsection{Scenario 3}
+\subsubsection{Scenario \arabic{scenarioCounter}}
+\noindent\textbf{Story:} \\
+IMALIVE command has not been received from an agent for ??? minutes. \\\\
+\textbf{Prerequisites:}
+\begin{itemize}
+    \item Agent is already in the computational network
+    \item Agent has another agent registered in his computational network topology
+\end{itemize}
+\textbf{Scenario:}
+\begin{enumerate}
+    \item IMALIVE command has not been received from an agent registered in computational network topology for ??? minutes.
+    \item Execute PRUNE command - remove agent from computational network topology and free the subproblem he registered. End of scenario \arabic{scenarioCounter}.
+\end{enumerate}
+\stepcounter{scenarioCounter}
+
+\subsubsection{Scenario \arabic{scenarioCounter}}
 \noindent\textbf{Story:} \\
 Agent wants to register a subproblem \\\\
 \textbf{Prerequisites:}
@@ -157,9 +184,9 @@ Agent wants to register a subproblem \\\\
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent broadcasts REGISTER packet.
+    \item Agent broadcasts REGISTER command.
     \item Agent starts calculations.
-    \item No response from computational network. End of Scenario 3
+    \item No response from computational network. End of Scenario \arabic{scenarioCounter}
 \end{enumerate}
 \textbf{Scenario extensions:}
 \begin{itemize}
@@ -167,17 +194,18 @@ Agent wants to register a subproblem \\\\
     \begin{itemize} 
     \item[3a.1.] Agent stops calculations.
     \item[3a.2.] Agent sets that subproblem's state to WIP.
-    \item[3a.3.] Agent chooses another subproblem. Repeat from point 1. End of Scenario 3.  
+    \item[3a.3.] Agent chooses another subproblem. Repeat from point 1. End of Scenario \arabic{scenarioCounter}.  
     \end{itemize}
     \item[3b.] An agent replies with RESULT. 
     \begin{itemize} 
     \item[3b.1.] Agent stops calculations.
     \item[3b.2.] Agent registers received subproblem result. 
-    \item[3b.3.] Agent chooses another subproblem. Repeat from point 1. End of Scenario 3.  
+    \item[3b.3.] Agent chooses another subproblem. Repeat from point 1. End of Scenario \arabic{scenarioCounter}.  
     \end{itemize}
 \end{itemize}
+\stepcounter{scenarioCounter}
 
-\subsubsection{Scenario 4}
+\subsubsection{Scenario \arabic{scenarioCounter}}
 \noindent\textbf{Story:} \\
 Agent wants to broadcast subproblem results. \\\\
 \textbf{Prerequisites:}
@@ -187,12 +215,26 @@ Agent wants to broadcast subproblem results. \\\\
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent broadcast RESULT packet. End of Scenario 4.
+    \item Agent broadcasts RESULT command. End of Scenario \arabic{scenarioCounter}.
 \end{enumerate}
+\stepcounter{scenarioCounter}
 
-\subsubsection{Scenario 5}
+\subsubsection{Scenario \arabic{scenarioCounter}}
 \noindent\textbf{Story:} \\
-Agent has received a RESULT packet with subproblem ID of a subproblem he already has a result of. \\\\
+Agent periodically broadcasts his subproblem results across the computational network \\\\
+\textbf{Prerequisites:}
+\begin{itemize}
+    \item Agent is already in the computational network
+\end{itemize}
+\textbf{Scenario:}
+\begin{enumerate}
+    \item Agent broadcasts PROGRESS command. End of Scenario \arabic{scenarioCounter}.
+\end{enumerate}
+\stepcounter{scenarioCounter}
+
+\subsubsection{Scenario \arabic{scenarioCounter}}
+\noindent\textbf{Story:} \\
+Agent has received a RESULT command with subproblem ID of a subproblem he already has a result of. \\\\
 \textbf{Prerequisites:}
 \begin{itemize}
     \item Agent is already in the computational network
@@ -200,27 +242,29 @@ Agent has received a RESULT packet with subproblem ID of a subproblem he already
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent received a RESULT packet.
+    \item Agent received a RESULT command.
     \item Agent tries to register the subproblem result. Subproblem with that ID already has a registered result.
-    \item Subproblem result of received packet is ignored. End of Scenario 5.
+    \item Subproblem result of received command is ignored. End of Scenario \arabic{scenarioCounter}.
 \end{enumerate}
+\stepcounter{scenarioCounter}
 
-\subsubsection{Scenario 6}
+\subsubsection{Scenario \arabic{scenarioCounter}}
 \noindent\textbf{Story:} \\
-Agent A tries to register a subproblem with ID == X. Agent B replies with STOPWIP packet. Agent A sets subproblem X's state to WIP. Agent B then disconnects. \\\\
+Agent A tries to register a subproblem with ID == X. Agent B replies with DROP. Agent A sets subproblem X's state to WIP. Agent B then disconnects. \\\\
 \textbf{Prerequisites:}
 \begin{itemize}
     \item Agent is already in the computational network
 \end{itemize}
 \textbf{Scenario:}
 \begin{enumerate}
-    \item Agent A broadcasts REGISTER packet with subproblem ID == X.
-    \item Agent B replies with STOPWIP.
+    \item Agent A broadcasts REGISTER command with subproblem ID == X.
+    \item Agent B replies with DROP.
     \item Agent A sets subproblem X's state to WIP.
     \item Agent B disconnects.
-    \item Agent A doesn't receive IMALIVE packets from agent B for ??? minutes.
-    \item Agent A sets subproblem X's state to unregistered. End of Scenario 6.
+    \item Agent A doesn't receive IMALIVE commands from agent B for ??? minutes.
+    \item Agent A sets subproblem X's state to unregistered. End of Scenario \arabic{scenarioCounter}.
 \end{enumerate}
+\stepcounter{scenarioCounter}
 
 \section{Computational problem}
 The chosen problem is finding a hash created with SHA1 cipher corresponding to a hardcoded hash of a 6 letter password.
@@ -235,7 +279,7 @@ Each agent can compute only one subproblem at a time.
 \section{Project Structure}
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=\linewidth]{diagrams/ProjectStructure.eps}
+	\includegraphics[width=\linewidth]{../diagrams/ProjectStructure.eps}
 	\caption{Project Structure Diagram}
 \end{figure}
 
@@ -251,29 +295,39 @@ Packages:
     \item \textbf{tests:} contains unit and integration tests that cover the rest of packages.
 \end{itemize}
 
+\section{Used design patterns}
+\subsection{Command}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{../diagrams/CommandDiagram.eps}
+	\caption{Command Diagram}
+\end{figure}
+
+\subsection{Abstract Factory}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{../diagrams/FactoryDiagram.eps}
+	\caption{Computational Problem Abstract Factory Diagram}
+\end{figure}
+
+\subsection{Template Method}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{../diagrams/SubproblemPoolDiagram.eps}
+	\caption{SubproblemPool Diagram}
+\end{figure}
+
 \section{Diagrams}
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=\linewidth]{diagrams/BrokerDiagram.eps}
+	\includegraphics[width=\linewidth]{../diagrams/BrokerDiagram.eps}
 	\caption{Broker Class Diagram}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=\linewidth]{diagrams/AppBrokerSequenceDiagram.eps}
+	\includegraphics[width=\linewidth]{../diagrams/AppBrokerSequenceDiagram.eps}
 	\caption{App-Broker Sequence Diagram}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=\linewidth]{diagrams/FactoryDiagram.eps}
-	\caption{Computational Problem Abstract Factory Diagram}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=\linewidth]{diagrams/CommandDiagram.eps}
-	\caption{Command Diagram}
 \end{figure}
 
 \newpage
@@ -307,7 +361,6 @@ The possibilities to disrupt a computational network are plentiful:
     \item \textbf{Python 3.7:} Python version 3.7. introduced @dataclass, which makes it easier to work with data structures.
     It allows creating immutable data structures.
     \item \textbf{Network Communication:} transmission of data in JSON format, using UDP protocol.
-    \item \textbf{Tkinter:} Python library Tkinter will be used to create GUI.
 \end{itemize}
 
 \end{document}
