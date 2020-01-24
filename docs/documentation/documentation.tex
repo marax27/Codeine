@@ -295,7 +295,7 @@ Packages:
     \item \textbf{tests:} contains unit and integration tests that cover the rest of packages.
 \end{itemize}
 
-\section{Used design patterns}
+\section{Design patterns}
 \subsection{Command}
 \begin{figure}[H]
 	\centering
@@ -313,9 +313,12 @@ Packages:
 \subsection{Template Method}
 \begin{figure}[H]
 	\centering
-	 \includegraphics[width=\linewidth]{../diagrams/SubproblemPoolDiagram.eps}
+	 \includegraphics[width=.6\linewidth]{../diagrams/SubproblemPoolDiagram.eps}
 	\caption{SubproblemPool Diagram}
 \end{figure}
+
+\subsection{Value Object}
+Instead of~working with concrete types such as~strings or integers, we~often utilize so-called Value Objects (e.g. \texttt{SubproblemId}, \texttt{SubproblemResult}, \texttt{ConnectionSettings}). Thanks to~the \texttt{dataclass} decorator, instances of~these classes are immutable, and an auto-generated equality operator compares values rather than identities.
 
 \section{Diagrams}
 \begin{figure}[H]
